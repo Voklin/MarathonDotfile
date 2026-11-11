@@ -8,12 +8,13 @@ usage() {
     cat <<'EOF'
 MARATHON Tactical — консольный установщик для CachyOS / Arch Linux
 
-  bash setup.sh             Пошаговое меню
-  bash setup.sh --dry-run   План установки без записи файлов
-  bash setup.sh --help      Справка
+  bash setup.sh                Пошаговое меню
+  bash setup.sh --dry-run      План установки и зависимостей без записи файлов
+  bash setup.sh --install-deps Только автоматическая докачка отсутствующих зависимостей
+  bash setup.sh --help         Справка
 
-Запускайте от обычного пользователя, без sudo.
-Пакеты устанавливаются пользователем отдельно; мастер не запускает сессию.
+Запускайте от обычного пользователя, без sudo (при докачке пакетов pacman запросит sudo).
+Отсутствующие пакеты из scripts/packages-cachyos.txt автоматически докачиваются через pacman/paru/yay.
 EOF
 }
 
@@ -21,6 +22,7 @@ mode=menu
 case "${1:-}" in
     --help|-h) usage; exit 0 ;;
     --dry-run) mode=preview ;;
+    --install-deps) mode=deps ;;
     '') ;;
     *) usage >&2; exit 2 ;;
 esac
@@ -62,7 +64,7 @@ run_step() {
 
 show_environment() {
     printf '\n============================================================\n'
-    printf ' MARATHON TACTICAL // УСТАНОВКА\n'
+    printf ' MARATHON TACTICAL // УСТАНОВКА (HYPRLAND LUA)\n'
     printf '============================================================\n'
     printf 'Профиль: %s\nКоманда сессии: %s\n' "$TARGET_DIR" "$LAUNCHER_BIN"
     printf 'Резервные копии: %s\n' "$BACKUP_ROOT"
@@ -79,10 +81,9 @@ show_environment() {
             printf '  [MISS] %s\n' "$command"
         fi
     done
-    printf '\nОтсутствующие пакеты установите отдельно. Список для проверки:\n  %s\n' "$ROOT/scripts/packages-cachyos.txt"
-    printf 'Проверьте доступность Quickshell в репозиториях вашей системы отдельно.\n'
-    printf 'Мастер копирует профиль и без runtime, но запуск потребует зависимостей.\n'
-    printf 'Совместимость Hyprland/Quickshell проверяется на целевой машине; установка её не подтверждает.\n'
+    printf '\nМанифест пакетов для автоматической докачки:\n  %s\n' "$ROOT/scripts/packages-cachyos.txt"
+    printf 'Отсутствующие зависимости докачиваются автоматически (pacman -S --needed / paru / yay).\n'
+    printf 'Профиль использует современный Lua-конфиг: hypr/hyprland.lua.\n'
     if [[ "$XDG_CONFIG_HOME" != "$HOME/.config" ]]; then
         printf 'ВНИМАНИЕ: профиль Hyprland содержит пути $HOME/.config/marathon-tactical.\n'
         printf 'Для установки используйте стандартный XDG_CONFIG_HOME=$HOME/.config.\n'
@@ -93,6 +94,7 @@ show_next_steps() {
     printf '\nЗапускать вручную после проверки doctor и совместимости профиля:\n'
     printf '  quickshell -p %q\n' "$TARGET_DIR/shell/shell.qml"
     printf 'Отдельная сессия из свободного TTY (не завершает текущую автоматически):\n  %q\n' "$LAUNCHER_BIN"
+    printf 'Докачка пакетов отдельно: bash %q --deps-only\n' "$ROOT/scripts/install.sh"
     printf 'Удаление: bash %q --yes\n' "$ROOT/scripts/uninstall.sh"
     printf 'Откат профиля: bash %q --restore-backup\n' "$ROOT/scripts/uninstall.sh"
     printf 'Откат тем: bash %q --restore\n' "$ROOT/scripts/apply-themes.sh"
@@ -104,12 +106,16 @@ if [[ "$mode" == preview ]]; then
     "$BASH" "$ROOT/scripts/install.sh" --dry-run
     exit 0
 fi
+if [[ "$mode" == deps ]]; then
+    "$BASH" "$ROOT/scripts/install.sh" --deps-only
+    exit 0
+fi
 
 while true; do
     cat <<'EOF'
 
-  1. Установить / обновить изолированный профиль
-  2. Показать план установки (dry-run)
+  1. Установить / обновить изолированный профиль (с автодокачкой зависимостей)
+  2. Показать план установки и зависимостей (dry-run)
   3. Диагностика окружения (только чтение)
   4. Восстановить темы приложений из последней копии
   5. Восстановить предыдущий профиль из резервной копии
@@ -121,13 +127,13 @@ EOF
     IFS= read -r choice || { printf '\nВыход.\n'; exit 0; }
     case "$choice" in
         1)
-            args=("$ROOT/scripts/install.sh" --yes)
+            args=("$ROOT/scripts/install.sh" --yes --install-deps)
             themes=no
             if confirm 'Применить темы внешних приложений с резервной копией?'; then
                 args+=(--apply-app-themes)
                 themes=yes
             fi
-            printf '\nПлан: установка/обновление %s\nТемы приложений: %s\n' "$TARGET_DIR" "$themes"
+            printf '\nПлан: автодокачка пакетов + установка/обновление %s\nТемы приложений: %s\n' "$TARGET_DIR" "$themes"
             printf 'Предыдущий профиль будет сохранён в %s.\n' "$BACKUP_ROOT"
             if [[ "$XDG_CONFIG_HOME" != "$HOME/.config" ]]; then
                 printf 'ERROR: Установка через мастер требует стандартного XDG_CONFIG_HOME (см. выше).\n'

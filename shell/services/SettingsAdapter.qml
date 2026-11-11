@@ -23,7 +23,7 @@ QtObject {
     property string activeSection: "profile"
     property string searchQuery: ""
     property string settingsFilePath: _marathonRoot + "/settings.json"
-    property string hyprOverridePath: _marathonRoot + "/hypr/user-settings.conf"
+    property string hyprOverridePath: _marathonRoot + "/hypr/user-settings.lua"
 
     property var hostSpecs: ({
         hostname: "cachyos",
@@ -32,7 +32,7 @@ QtObject {
         cpu: "Detecting...",
         gpu: "Detecting...",
         memory: "Detecting...",
-        compositor: Hyprland.workspaces !== null ? "Hyprland (Active IPC)" : "Hyprland (Offline)",
+        compositor: Hyprland.workspaces !== null ? "Hyprland Lua (Active IPC)" : "Hyprland Lua (Offline)",
         shellVersion: "MARATHON Tactical v1.1 // Quickshell"
     })
 
@@ -157,12 +157,12 @@ QtObject {
     property var customKeybinds: []
 
     readonly property var builtinRules: [
-        { name: "marathon-float-utilities", matchExpr: "match:class ^(pavucontrol|nm-connection-editor|blueman-manager|polkit...)$", effect: "float = on, center = on" },
-        { name: "marathon-float-portals", matchExpr: "match:class ^(xdg-desktop-portal-...)$", effect: "float = on, center = on" },
-        { name: "marathon-float-dialogs", matchExpr: "match:title ^(Open File|Save File|Confirm|Preferences|Settings)$", effect: "float = on, center = on" },
-        { name: "marathon-pip", matchExpr: "match:title ^(Picture-in-Picture|Picture in picture)$", effect: "float = on, pin = on" },
-        { name: "marathon-fullscreen-idleinhibit", matchExpr: "match:fullscreen = true", effect: "idle_inhibit = focus" },
-        { name: "marathon-shell-layers", matchExpr: "layerrule match:namespace ^marathon-(hud|launcher|...|settings)$", effect: "no_anim = on, blur = off" }
+        { name: "marathon-float-utilities", matchExpr: "match = { class = \"^(pavucontrol|nm-connection-editor|blueman-manager|polkit...)$\" }", effect: "float = true, center = true" },
+        { name: "marathon-float-portals", matchExpr: "match = { class = \"^(xdg-desktop-portal-...)$\" }", effect: "float = true, center = true" },
+        { name: "marathon-float-dialogs", matchExpr: "match = { title = \"^(Open File|Save File|Confirm|Preferences|Settings)$\" }", effect: "float = true, center = true" },
+        { name: "marathon-pip", matchExpr: "match = { title = \"^(Picture-in-Picture|Picture in picture)$\" }", effect: "float = true, pin = true" },
+        { name: "marathon-fullscreen-idleinhibit", matchExpr: "match = { fullscreen = true }", effect: "idle_inhibit = \"focus\"" },
+        { name: "marathon-shell-layers", matchExpr: "hl.layer_rule match = { namespace = \"^marathon-(hud|launcher|...|settings)$\" }", effect: "no_anim = true, blur = false" }
     ]
 
     property var customWindowRules: []
@@ -397,140 +397,154 @@ QtObject {
         return "rgba(" + hx(c.r) + hx(c.g) + hx(c.b) + hx(c.a) + ")"
     }
 
+    function _luaQuote(val) {
+        return "\"" + String(val === undefined || val === null ? "" : val).replace(/\\/g, "\\\\").replace(/"/g, "\\\"").replace(/\r?\n/g, " ") + "\""
+    }
+
     function _rebuildHyprConf() {
         var lines = [
-            "# ==============================================================================",
-            "# MARATHON Tactical — GUI Settings Hub Isolated Overrides",
-            "# Auto-generated inside ~/.config/marathon-tactical/hypr/user-settings.conf",
-            "# NEVER modifies ~/.config/hypr/",
-            "# ==============================================================================",
+            "-- ==============================================================================",
+            "-- MARATHON Tactical — GUI Settings Hub Isolated Overrides (Lua API)",
+            "-- Auto-generated inside ~/.config/marathon-tactical/hypr/user-settings.lua",
+            "-- NEVER modifies ~/.config/hypr/",
+            "-- ==============================================================================",
             "",
-            "$terminal = " + (defaultTerminal || "ghostty"),
-            "$fileManager = " + (defaultFileManager || "dolphin"),
-            "$browser = " + (defaultBrowser || "firefox"),
-            "$editor = " + (defaultEditor || "nvim"),
-            "$mediaPlayer = " + (defaultMediaPlayer || "mpv"),
-            "$imageViewer = " + (defaultImageViewer || "imv"),
-            "$pdfViewer = " + (defaultPdfViewer || "zathura"),
-            "$systemMonitor = " + (defaultSystemMonitor || "btop"),
+            "local M = _G.MARATHON or { apps = {} }",
+            "M.apps = M.apps or {}",
+            "M.apps.terminal = " + _luaQuote(defaultTerminal || "ghostty"),
+            "M.apps.fileManager = " + _luaQuote(defaultFileManager || "dolphin"),
+            "M.apps.browser = " + _luaQuote(defaultBrowser || "firefox"),
+            "M.apps.editor = " + _luaQuote(defaultEditor || "nvim"),
+            "M.apps.mediaPlayer = " + _luaQuote(defaultMediaPlayer || "mpv"),
+            "M.apps.imageViewer = " + _luaQuote(defaultImageViewer || "imv"),
+            "M.apps.pdfViewer = " + _luaQuote(defaultPdfViewer || "zathura"),
+            "M.apps.systemMonitor = " + _luaQuote(defaultSystemMonitor || "btop"),
             "",
-            "general {",
-            "    gaps_in = " + hyprGapsIn,
-            "    gaps_out = " + hyprGapsOut,
-            "    border_size = " + hyprBorderSize,
-            "    col.active_border = " + _colorToHyprRgba(Tokens.signal),
-            "    col.inactive_border = " + _colorToHyprRgba(Tokens.border),
-            "    resize_on_border = " + (hyprResizeOnBorder ? "true" : "false"),
-            "    allow_tearing = " + (hyprAllowTearing ? "true" : "false"),
-            "    layout = " + hyprLayout,
-            "}",
-            "",
-            "decoration {",
-            "    rounding = " + hyprRounding,
-            "    active_opacity = " + hyprActiveOpacity.toFixed(2),
-            "    inactive_opacity = " + hyprInactiveOpacity.toFixed(2),
-            "    shadow {",
-            "        enabled = " + (hyprShadowEnabled ? "true" : "false"),
-            "    }",
-            "    blur {",
-            "        enabled = " + (hyprBlurEnabled ? "true" : "false"),
-            "    }",
-            "}",
-            "",
-            "misc {",
-            "    vfr = " + (hyprVfrEnabled ? "true" : "false"),
-            "    background_color = " + _colorToHyprRgba(Tokens.background),
-            "}",
-            "",
-            "animations {",
-            "    enabled = " + (hyprAnimationsEnabled ? "yes" : "no"),
-            "}",
-            "",
-            "input {",
-            "    kb_layout = " + (kbLayout || "us"),
-            "    kb_variant = " + (kbVariant || ""),
-            "    kb_options = " + (kbOptions || ""),
-            "    repeat_rate = " + repeatRate,
-            "    repeat_delay = " + repeatDelay,
-            "    follow_mouse = " + followMouse,
-            "    sensitivity = " + pointerSensitivity.toFixed(2),
-            "    accel_profile = " + accelProfile,
-            "    touchpad {",
-            "        natural_scroll = " + (touchpadNaturalScroll ? "true" : "false"),
-            "        disable_while_typing = " + (touchpadDisableWhileTyping ? "true" : "false"),
-            "        tap-to-click = " + (touchpadTapToClick ? "true" : "false"),
-            "        middle_button_emulation = " + (touchpadMiddleEmulation ? "true" : "false"),
-            "    }",
-            "}",
-            "",
-            "xwayland {",
-            "    force_zero_scaling = " + (xwaylandForceZeroScaling ? "true" : "false"),
-            "}"
+            "hl.config({",
+            "    general = {",
+            "        gaps_in = " + hyprGapsIn + ",",
+            "        gaps_out = " + hyprGapsOut + ",",
+            "        border_size = " + hyprBorderSize + ",",
+            "        [\"col.active_border\"] = " + _luaQuote(_colorToHyprRgba(Tokens.signal)) + ",",
+            "        [\"col.inactive_border\"] = " + _luaQuote(_colorToHyprRgba(Tokens.border)) + ",",
+            "        resize_on_border = " + (hyprResizeOnBorder ? "true" : "false") + ",",
+            "        allow_tearing = " + (hyprAllowTearing ? "true" : "false") + ",",
+            "        layout = " + _luaQuote(hyprLayout) + ",",
+            "    },",
+            "    decoration = {",
+            "        rounding = " + hyprRounding + ",",
+            "        active_opacity = " + hyprActiveOpacity.toFixed(2) + ",",
+            "        inactive_opacity = " + hyprInactiveOpacity.toFixed(2) + ",",
+            "        shadow = {",
+            "            enabled = " + (hyprShadowEnabled ? "true" : "false") + ",",
+            "        },",
+            "        blur = {",
+            "            enabled = " + (hyprBlurEnabled ? "true" : "false") + ",",
+            "        },",
+            "    },",
+            "    misc = {",
+            "        vfr = " + (hyprVfrEnabled ? "true" : "false") + ",",
+            "        background_color = " + _luaQuote(_colorToHyprRgba(Tokens.background)) + ",",
+            "    },",
+            "    animations = {",
+            "        enabled = " + (hyprAnimationsEnabled ? "true" : "false") + ",",
+            "    },",
+            "    input = {",
+            "        kb_layout = " + _luaQuote(kbLayout || "us") + ",",
+            "        kb_variant = " + _luaQuote(kbVariant || "") + ",",
+            "        kb_options = " + _luaQuote(kbOptions || "") + ",",
+            "        repeat_rate = " + repeatRate + ",",
+            "        repeat_delay = " + repeatDelay + ",",
+            "        follow_mouse = " + followMouse + ",",
+            "        sensitivity = " + pointerSensitivity.toFixed(2) + ",",
+            "        accel_profile = " + _luaQuote(accelProfile) + ",",
+            "        touchpad = {",
+            "            natural_scroll = " + (touchpadNaturalScroll ? "true" : "false") + ",",
+            "            disable_while_typing = " + (touchpadDisableWhileTyping ? "true" : "false") + ",",
+            "            [\"tap-to-click\"] = " + (touchpadTapToClick ? "true" : "false") + ",",
+            "            middle_button_emulation = " + (touchpadMiddleEmulation ? "true" : "false") + ",",
+            "        },",
+            "    },",
+            "    xwayland = {",
+            "        force_zero_scaling = " + (xwaylandForceZeroScaling ? "true" : "false") + ",",
+            "    },",
+            "})"
         ]
 
         if (displayConfigs && displayConfigs.length > 0) {
             lines.push("")
-            lines.push("# Displays")
+            lines.push("-- Displays")
             for (var d = 0; d < displayConfigs.length; ++d) {
                 var mon = displayConfigs[d]
                 if (!mon.enabled) {
-                    lines.push("monitor = " + mon.name + ", disable")
+                    lines.push("hl.monitor({ output = " + _luaQuote(mon.name) + ", disabled = true })")
                 } else {
-                    lines.push("monitor = " + mon.name + ", " + mon.mode + ", " + mon.position + ", " + Number(mon.scale).toFixed(2) + ", transform, " + mon.transform)
+                    lines.push("hl.monitor({ output = " + _luaQuote(mon.name) + ", mode = " + _luaQuote(mon.mode) + ", position = " + _luaQuote(mon.position) + ", scale = " + Number(mon.scale).toFixed(2) + ", transform = " + Number(mon.transform) + " })")
                 }
             }
         }
 
         if (bareSuperLauncher) {
             lines.push("")
-            lines.push("# Opt-in bare Super release launcher trigger")
-            lines.push("bindr = SUPER, SUPER_L, global, marathon-tactical:launcher")
+            lines.push("-- Opt-in bare Super release launcher trigger")
+            lines.push("hl.bind(\"SUPER + SUPER_L\", hl.dsp.global(\"marathon-tactical:launcher\"), { release = true })")
         }
 
         if (customKeybinds && customKeybinds.length > 0) {
             lines.push("")
-            lines.push("# Custom Keybinds")
+            lines.push("-- Custom Keybinds")
             for (var k = 0; k < customKeybinds.length; ++k) {
                 var kb = customKeybinds[k]
                 if (!kb.enabled) continue
-                lines.push("bind = " + kb.mods + ", " + kb.key + ", " + kb.dispatcher + (kb.arg !== "" ? (", " + kb.arg) : ""))
+                var modTokens = String(kb.mods || "SUPER").trim().split(/[\s+]+/)
+                var chordStr = modTokens.join(" + ") + " + " + String(kb.key || "")
+                if (kb.dispatcher === "exec") {
+                    lines.push("hl.bind(" + _luaQuote(chordStr) + ", hl.dsp.exec_cmd(" + _luaQuote(kb.arg) + "))")
+                } else if (kb.dispatcher === "global") {
+                    lines.push("hl.bind(" + _luaQuote(chordStr) + ", hl.dsp.global(" + _luaQuote(kb.arg) + "))")
+                } else {
+                    var rawCmd = "hyprctl dispatch " + kb.dispatcher + (kb.arg !== "" ? (" " + kb.arg) : "")
+                    lines.push("hl.bind(" + _luaQuote(chordStr) + ", hl.dsp.exec_cmd(" + _luaQuote(rawCmd) + "))")
+                }
             }
         }
 
         if (customWindowRules && customWindowRules.length > 0) {
             lines.push("")
-            lines.push("# Custom Window Rules (Hyprland >= 0.53 match: syntax)")
+            lines.push("-- Custom Window Rules (Hyprland Lua API)")
             for (var r = 0; r < customWindowRules.length; ++r) {
                 var wr = customWindowRules[r]
                 if (!wr.enabled) continue
-                lines.push("windowrule {")
-                lines.push("    name = " + wr.name)
-                lines.push("    match:" + wr.matchType + " = " + wr.pattern)
-                if (wr.floatWin) lines.push("    float = on")
-                if (wr.centerWin) lines.push("    center = on")
-                if (wr.pinWin) lines.push("    pin = on")
-                lines.push("}")
+                lines.push("hl.window_rule({")
+                lines.push("    name = " + _luaQuote(wr.name) + ",")
+                lines.push("    match = { " + wr.matchType + " = " + _luaQuote(wr.pattern) + " },")
+                if (wr.floatWin) lines.push("    float = true,")
+                if (wr.centerWin) lines.push("    center = true,")
+                if (wr.pinWin) lines.push("    pin = true,")
+                lines.push("})")
             }
         }
 
         if (envVars && envVars.length > 0) {
             lines.push("")
-            lines.push("# Custom Environment Variables")
+            lines.push("-- Custom Environment Variables")
             for (var e = 0; e < envVars.length; ++e) {
                 var ev = envVars[e]
                 if (!ev.enabled) continue
-                lines.push("env = " + ev.key + "," + ev.value)
+                lines.push("hl.env(" + _luaQuote(ev.key) + ", " + _luaQuote(ev.value) + ")")
             }
         }
 
         if (autostartItems && autostartItems.length > 0) {
             lines.push("")
-            lines.push("# Custom Autostart")
+            lines.push("-- Custom Autostart")
+            lines.push("hl.on(\"hyprland.start\", function()")
             for (var a = 0; a < autostartItems.length; ++a) {
                 var item = autostartItems[a]
                 if (!item.enabled) continue
-                lines.push("exec-once = " + item.command)
+                lines.push("    hl.exec_cmd(" + _luaQuote(item.command) + ")")
             }
+            lines.push("end)")
         }
 
         generatedHyprConf = lines.join("\n")

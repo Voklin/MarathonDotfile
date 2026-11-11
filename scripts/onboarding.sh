@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # MARATHON Tactical — first-login onboarding (A12).
-#  * Verifies the apps referenced by the profile ($terminal/$browser/...) exist.
+#  * Verifies the apps referenced by the Lua profile (M.apps.terminal/browser/...) exist.
 #  * --session-file: OPT-IN. Generates a login-screen session entry into the
 #    user's own staging dir and prints the manual sudo install + rollback
 #    commands. This script never writes system paths, never touches the display
@@ -11,7 +11,8 @@ set -euo pipefail
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 TARGET_DIR="${XDG_CONFIG_HOME}/marathon-tactical"
-HYPR_CONF="${TARGET_DIR}/hypr/hyprland.conf"
+HYPR_LUA="${TARGET_DIR}/hypr/hyprland.lua"
+HYPR_USER_LUA="${TARGET_DIR}/hypr/user-settings.lua"
 STAGE_DIR="${XDG_DATA_HOME}/marathon-tactical"
 SESSION_NAME="marathon-tactical.desktop"
 SYS_SESSION_DIR="/usr/local/share/wayland-sessions"
@@ -25,10 +26,15 @@ case "${1:-}" in
 esac
 
 conf_var() {
-    # Reads `$name = value` from the isolated profile only.
-    local name="$1"
-    [[ -f "$HYPR_CONF" ]] || return 0
-    sed -n "s/^\\\$${name}[[:space:]]*=[[:space:]]*\\([^#]*\\).*/\\1/p" -- "$HYPR_CONF" | head -n 1 | awk '{print $1}'
+    # Reads `M.apps.<name> = "value"` or `<name> = "value"` from the isolated Lua profile only.
+    local name="$1" val=""
+    if [[ -f "$HYPR_USER_LUA" ]]; then
+        val="$(sed -n "s/^[[:space:]]*M\\.apps\\.${name}[[:space:]]*=[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p" -- "$HYPR_USER_LUA" | tail -n 1)"
+    fi
+    if [[ -z "$val" && -f "$HYPR_LUA" ]]; then
+        val="$(sed -n "s/^[[:space:]]*${name}[[:space:]]*=[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p" -- "$HYPR_LUA" | head -n 1)"
+    fi
+    printf '%s\n' "$val" | awk '{print $1}'
 }
 
 if [[ "$mode" == check ]]; then
@@ -36,13 +42,13 @@ if [[ "$mode" == check ]]; then
     for var in terminal browser fileManager editor; do
         app="$(conf_var "$var")"
         if [[ -z "$app" ]]; then
-            printf '  [ ?? ] $%-12s not set in %s\n' "$var" "$HYPR_CONF"
+            printf '  [ ?? ] M.apps.%-12s not set in %s\n' "$var" "$HYPR_LUA"
             continue
         fi
         if command -v -- "$app" >/dev/null 2>&1; then
-            printf '  [ OK ] $%-12s %s\n' "$var" "$app"
+            printf '  [ OK ] M.apps.%-12s %s\n' "$var" "$app"
         else
-            printf '  [MISS] $%-12s %s  -> install it or edit %s\n' "$var" "$app" "$HYPR_CONF"
+            printf '  [MISS] M.apps.%-12s %s  -> install it or edit %s\n' "$var" "$app" "$HYPR_LUA"
             missing=$((missing + 1))
         fi
     done
@@ -61,7 +67,7 @@ mkdir -p -- "$STAGE_DIR"
 cat > "${STAGE_DIR}/${SESSION_NAME}" <<EOF
 [Desktop Entry]
 Name=MARATHON Tactical (Hyprland)
-Comment=Isolated MARATHON Tactical Hyprland profile
+Comment=Isolated MARATHON Tactical Hyprland Lua profile
 Exec=${LAUNCHER}
 Type=Application
 DesktopNames=Hyprland

@@ -35,7 +35,7 @@ Item {
         { id: "autostart", group: "HYPRLAND", label: "Autostart & GPU", code: "EXEC // ENV // GPU", icon: "terminal", resettable: true, keywords: "autostart exec-once environment env gpu discrete integrated render" },
         { id: "audio", group: "HARDWARE", label: "Audio & Power", code: "PIPEWIRE // POWER", icon: "audio", resettable: false, keywords: "audio volume mute sink routing microphone backlight brightness battery power profile" },
         { id: "connections", group: "HARDWARE", label: "Connections", code: "WI-FI // BLUETOOTH", icon: "wifi", resettable: false, keywords: "wifi network ssid connect disconnect bluetooth devices battery" },
-        { id: "config", group: "MAINTENANCE", label: "Config & Overrides", code: "PERSISTENCE // CONF", icon: "settings", resettable: false, keywords: "config json user-settings.conf export reload reset defaults" },
+        { id: "config", group: "MAINTENANCE", label: "Config & Overrides", code: "PERSISTENCE // LUA", icon: "settings", resettable: false, keywords: "config json lua user-settings.lua export reload reset defaults" },
         { id: "about", group: "MAINTENANCE", label: "Diagnostics & About", code: "HEALTH // INFO", icon: "warning", resettable: false, keywords: "diagnostics health adapters version license credits" }
     ]
 
@@ -63,11 +63,11 @@ Item {
         { sectionId: "input", title: "Pointer Sensitivity, Accel & Touchpad", keywords: "mouse pointer sensitivity flat adaptive touchpad tap natural scroll" },
         { sectionId: "keybinds", title: "Default Apps ($terminal, $fileManager, $browser)", keywords: "terminal file manager browser ghostty dolphin firefox" },
         { sectionId: "keybinds", title: "Custom Keybind Builder & Super_L Opt-In", keywords: "keybind custom shortcut super bare" },
-        { sectionId: "rules", title: "Window Rules Builder (match: syntax)", keywords: "windowrule match class title float center pin" },
-        { sectionId: "autostart", title: "Autostart (exec-once), Env & GPU Policy", keywords: "autostart exec-once env gpu render" },
+        { sectionId: "rules", title: "Window Rules Builder (hl.window_rule Lua)", keywords: "windowrule window_rule match class title float center pin lua" },
+        { sectionId: "autostart", title: "Autostart (hyprland.start), Env & GPU Policy", keywords: "autostart exec_cmd env gpu render lua" },
         { sectionId: "audio", title: "PipeWire Volume, Sink Routing & Backlight", keywords: "audio volume mute sink mic brightness backlight power profile" },
         { sectionId: "connections", title: "Wi-Fi Networks & Bluetooth Devices", keywords: "wifi network ssid bluetooth device pair" },
-        { sectionId: "config", title: "Live user-settings.conf & JSON Export", keywords: "config export json reload reset" },
+        { sectionId: "config", title: "Live user-settings.lua & JSON Export", keywords: "config lua export json reload reset" },
         { sectionId: "about", title: "Subsystem Adapter Health Matrix", keywords: "health diagnostics adapters version" }
     ]
 

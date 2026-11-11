@@ -415,7 +415,7 @@ Item {
                 }
                 Text {
                     Layout.fillWidth: true
-                    text: "HYPR CONF  : " + (root.s ? root.s.hyprOverridePath : "-")
+                    text: "HYPR LUA   : " + (root.s ? root.s.hyprOverridePath : "-")
                     color: Tokens.text
                     font.family: Tokens.fontMono
                     font.pixelSize: Tokens.fontMicro
@@ -495,7 +495,7 @@ Item {
                             ? "EXPORTED JSON SNAPSHOT"
                             : (root.configPreviewTab === "apps"
                                 ? "LIVE SYNCED EXTERNAL APP THEMES (apps/generated/)"
-                                : "LIVE GENERATED hypr/user-settings.conf")
+                                : "LIVE GENERATED hypr/user-settings.lua")
                         color: Tokens.signal
                         font.family: Tokens.fontMono
                         font.pixelSize: Tokens.fontMicro

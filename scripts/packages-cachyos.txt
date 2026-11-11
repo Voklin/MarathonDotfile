@@ -1,8 +1,10 @@
 # ==============================================================================
-# MARATHON Tactical — Recommended CachyOS / Arch Linux Package List
-# Review and install manually via:
+# MARATHON Tactical — CachyOS / Arch Linux Dependency Manifest
+# Automatically resolved and installed (only missing packages) by:
+#   bash setup.sh
+#   bash scripts/install.sh
+# Or manually via:
 #   sudo pacman -S --needed $(grep -vE '^(#|$)' scripts/packages-cachyos.txt)
-# NOTE: Optional AUR / runtime packages marked accordingly in comments.
 # ==============================================================================
 
 # --- Core Compositor, Shell & Session ---
@@ -10,8 +12,8 @@ hyprland
 hyprlock
 hypridle
 hyprpicker
-# hyprsunset            # Optional Night Light (official repo or AUR: hyprsunset)
-# quickshell            # Install from CachyOS/AUR (`quickshell` or `quickshell-git`)
+hyprsunset
+quickshell
 polkit-kde-agent
 xdg-desktop-portal-hyprland
 xdg-desktop-portal-gtk

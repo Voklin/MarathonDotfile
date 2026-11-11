@@ -12,22 +12,28 @@ source "$SCRIPT_DIR/profile-common.sh"
 DRY_RUN=0
 AUTO_YES=0
 APPLY_APP_THEMES=0
+INSTALL_DEPS=1
+DEPS_ONLY=0
 
 usage() {
     cat <<'EOF'
-MARATHON Tactical — Isolated Profile Installer (CachyOS / Hyprland + Quickshell)
+MARATHON Tactical — Isolated Profile Installer (CachyOS / Hyprland Lua + Quickshell)
 
 Usage:
-  bash scripts/install.sh [--dry-run] [--apply-app-themes] [--yes] [--help]
+  bash scripts/install.sh [--dry-run] [--install-deps] [--no-deps] [--deps-only] [--apply-app-themes] [--yes] [--help]
 
 Options:
   --dry-run           Print planned operations and dependency status without writing any files.
+  --install-deps      Automatically download and install missing packages from scripts/packages-cachyos.txt (default).
+  --no-deps           Skip automatic package installation and only deploy the isolated profile files.
+  --deps-only         Only check and install missing packages from scripts/packages-cachyos.txt.
   --apply-app-themes  Also deploy styled app configs (~/.config/ghostty, kitty, btop, yazi, gtk, qt6ct, mpv, imv, zathura, starship, fastfetch) with automatic backup.
   --yes               Skip interactive confirmation prompt (still never overwrites ~/.config/hypr/).
   --help              Show this help message.
 
 Safety Guarantees:
   - Installs ONLY into ~/.config/marathon-tactical/ and ~/.local/bin/marathon-tactical-session
+  - Uses `pacman -S --needed` (and paru/yay for AUR); never runs `pacman -Rns` or full system upgrade.
   - Never modifies ~/.config/hypr/, ~/.config/quickshell/, display managers, or sshd.
   - Backs up any previous ~/.config/marathon-tactical/ installation before updating.
 EOF
@@ -37,6 +43,19 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --dry-run)
             DRY_RUN=1
+            shift
+            ;;
+        --install-deps)
+            INSTALL_DEPS=1
+            shift
+            ;;
+        --no-deps)
+            INSTALL_DEPS=0
+            shift
+            ;;
+        --deps-only)
+            INSTALL_DEPS=1
+            DEPS_ONLY=1
             shift
             ;;
         --apply-app-themes)
@@ -86,6 +105,11 @@ for d in ui shell hypr design apps scripts; do
     fi
 done
 
+if [[ "$DEPS_ONLY" -eq 1 ]]; then
+    install_missing_dependencies "$REPO_ROOT/scripts/packages-cachyos.txt" "$DRY_RUN"
+    exit 0
+fi
+
 # Non-destructive dependency & Hyprland version audit
 check_cmd() {
     local cmd="$1"
@@ -124,8 +148,8 @@ if command -v Hyprland >/dev/null 2>&1 && command -v timeout >/dev/null 2>&1; th
     log "Detected compositor: ${hypr_ver:-unknown}"
     if [[ "$hypr_ver" =~ 0\.([0-9]+) ]]; then
         minor="${BASH_REMATCH[1]}"
-        if (( minor >= 55 )); then
-            log "WARNING: Hyprland 0.55+ detected. Legacy hyprlang compatibility is transitional; test config parsing before daily use."
+        if (( minor < 55 )); then
+            log "WARNING: Hyprland < 0.55 detected. Native hyprland.lua requires Hyprland 0.55+."
         fi
     fi
 fi
@@ -137,6 +161,10 @@ if [[ "$DRY_RUN" -eq 0 && "$AUTO_YES" -eq 0 ]]; then
         log "Installation cancelled by user. Zero changes applied."
         exit 0
     fi
+fi
+
+if [[ "$INSTALL_DEPS" -eq 1 ]]; then
+    install_missing_dependencies "$REPO_ROOT/scripts/packages-cachyos.txt" "$DRY_RUN"
 fi
 
 if [[ "$DRY_RUN" -eq 1 ]]; then
@@ -166,7 +194,7 @@ else
     for d in ui shell hypr design apps scripts; do
         cp -a -- "$REPO_ROOT/$d" "$stage/$d"
     done
-    for relative in settings.json scratchpad.txt hypr/user-settings.conf apps/generated; do
+    for relative in settings.json scratchpad.txt hypr/user-settings.lua apps/generated; do
         if [[ -e "$TARGET_DIR/$relative" ]]; then
             [[ ! -L "$TARGET_DIR/$relative" ]] || {
                 log "ERROR: Refusing symlinked user data: $relative"; exit 1;
@@ -214,4 +242,3 @@ else
         log "     bash $TARGET_DIR/scripts/apply-themes.sh --dry-run"
     fi
 fi
-

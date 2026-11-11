@@ -87,17 +87,27 @@ class MarathonContractAndAssetTests(unittest.TestCase):
             self.assertGreater(len(data), 1024, f"Unexpectedly tiny wallpaper PNG: {png_file}")
 
     def test_hyprland_config_safety_invariants(self) -> None:
-        hypr_files = sorted((REPO_ROOT / "hypr").rglob("*.conf"))
-        self.assertGreaterEqual(len(hypr_files), 8)
-        for cfg in hypr_files:
+        lua_files = sorted((REPO_ROOT / "hypr").rglob("*.lua"))
+        self.assertGreaterEqual(len(lua_files), 10)
+        self.assertTrue((REPO_ROOT / "hypr" / "hyprland.lua").is_file())
+        self.assertTrue((REPO_ROOT / "hypr" / "user-settings.lua").is_file())
+        self.assertFalse((REPO_ROOT / "hypr" / "hyprland.conf").exists(), "Legacy hyprland.conf must be replaced by hyprland.lua")
+        for cfg in lua_files:
             txt = cfg.read_text(encoding="utf-8")
-            # Strip comments for active rule checks
-            active_lines = [ln.strip() for ln in txt.splitlines() if ln.strip() and not ln.strip().startswith("#")]
+            active_lines = [ln.strip() for ln in txt.splitlines() if ln.strip() and not ln.strip().startswith("--")]
             active_body = "\n".join(active_lines)
             self.assertNotIn("windowrulev2", active_body, f"Deprecated windowrulev2 in {cfg}")
             self.assertNotIn("SUPER_L", active_body, f"Active bare Super_L hijack enabled in {cfg}")
             self.assertNotIn("~/.config/hypr/", active_body, f"Should not target ~/.config/hypr/ directly in {cfg}")
             self.assertNotIn("L_RIGHT", active_body, f"Invalid placeholder keysym in {cfg}")
+        hypr_entry = (REPO_ROOT / "hypr" / "hyprland.lua").read_text(encoding="utf-8")
+        self.assertIn('require("modules.binds")', hypr_entry)
+        self.assertIn('require("user-settings")', hypr_entry)
+        rules_lua = (REPO_ROOT / "hypr" / "modules" / "rules.lua").read_text(encoding="utf-8")
+        self.assertIn("hl.window_rule", rules_lua)
+        self.assertIn("hl.layer_rule", rules_lua)
+        for aux_conf in ("hyprlock.conf", "hypridle.conf"):
+            self.assertTrue((REPO_ROOT / "hypr" / aux_conf).is_file(), f"Missing {aux_conf}")
 
     def test_notifications_single_daemon_check_present(self) -> None:
         notif_adapter = (REPO_ROOT / "shell" / "services" / "NotificationsAdapter.qml").read_text(encoding="utf-8")
@@ -134,11 +144,13 @@ class MarathonContractAndAssetTests(unittest.TestCase):
         uninstall_txt = (scripts_dir / "uninstall.sh").read_text(encoding="utf-8")
         apply_txt = (scripts_dir / "apply-themes.sh").read_text(encoding="utf-8")
         self.assertIn("--dry-run", install_txt)
+        self.assertIn("--install-deps", install_txt)
+        self.assertIn("--no-deps", install_txt)
         self.assertIn("--dry-run", uninstall_txt)
         self.assertIn("--dry-run", apply_txt)
         self.assertIn("--restore", apply_txt)
         self.assertIn("marathon-tactical-app-backups", apply_txt)
-        binds_txt = (REPO_ROOT / "hypr" / "modules" / "binds.conf").read_text(encoding="utf-8")
+        binds_txt = (REPO_ROOT / "hypr" / "modules" / "binds.lua").read_text(encoding="utf-8")
         self.assertNotIn("pkill -x quickshell", binds_txt, "A10: restart must target only MARATHON instance")
         ctl_txt = (scripts_dir / "shell-ctl.sh").read_text(encoding="utf-8")
         self.assertNotIn("pkill", ctl_txt.split("\n", 6)[-1])

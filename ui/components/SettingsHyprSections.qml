@@ -1015,7 +1015,7 @@ Item {
                 spacing: 2
 
                 Text {
-                    text: "BUILTIN RULES (hypr/modules/rules.conf)"
+                    text: "BUILTIN RULES (hypr/modules/rules.lua)"
                     color: Tokens.muted
                     font.family: Tokens.fontMono
                     font.pixelSize: Tokens.fontMicro

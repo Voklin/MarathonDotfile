@@ -136,34 +136,34 @@ Item {
             backend.settings.setSetting("bareSuperLauncher", true)
 
             var conf = backend.settings.generatedHyprConf
-            verify(conf.indexOf("layout = master") !== -1)
+            verify(conf.indexOf("layout = \"master\"") !== -1)
             verify(conf.indexOf("gaps_in = 10") !== -1)
             verify(conf.indexOf("rounding = 4") !== -1)
-            verify(conf.indexOf("kb_layout = us,ru") !== -1)
-            verify(conf.indexOf("$terminal = kitty") !== -1)
-            verify(conf.indexOf("SUPER_L, global, marathon-tactical:launcher") !== -1)
+            verify(conf.indexOf("kb_layout = \"us,ru\"") !== -1)
+            verify(conf.indexOf("M.apps.terminal = \"kitty\"") !== -1)
+            verify(conf.indexOf("hl.bind(\"SUPER + SUPER_L\", hl.dsp.global(\"marathon-tactical:launcher\"), { release = true })") !== -1)
 
             backend.settings.updateDisplayConfig("eDP-1", { scale: 1.5, transform: 1, mode: "1920x1080@60" })
-            verify(backend.settings.generatedHyprConf.indexOf("monitor = eDP-1, 1920x1080@60, 0x0, 1.50, transform, 1") !== -1)
+            verify(backend.settings.generatedHyprConf.indexOf("hl.monitor({ output = \"eDP-1\", mode = \"1920x1080@60\", position = \"0x0\", scale = 1.50, transform = 1 })") !== -1)
 
             backend.settings.addCustomKeybind("SUPER+SHIFT", "M", "exec", "btop")
-            verify(backend.settings.generatedHyprConf.indexOf("bind = SUPER+SHIFT, M, exec, btop") !== -1)
+            verify(backend.settings.generatedHyprConf.indexOf("hl.bind(\"SUPER + SHIFT + M\", hl.dsp.exec_cmd(\"btop\"))") !== -1)
             var addedKbId = backend.settings.customKeybinds[backend.settings.customKeybinds.length - 1].id
             backend.settings.toggleCustomKeybind(addedKbId)
-            compare(backend.settings.generatedHyprConf.indexOf("bind = SUPER+SHIFT, M, exec, btop"), -1)
+            compare(backend.settings.generatedHyprConf.indexOf("hl.bind(\"SUPER + SHIFT + M\", hl.dsp.exec_cmd(\"btop\"))"), -1)
             backend.settings.removeCustomKeybind(addedKbId)
 
             backend.settings.addWindowRule("float-mpv", "class", "^(mpv)$", true, true, true)
             conf = backend.settings.generatedHyprConf
-            verify(conf.indexOf("name = float-mpv") !== -1)
-            verify(conf.indexOf("match:class = ^(mpv)$") !== -1)
-            verify(conf.indexOf("pin = on") !== -1)
+            verify(conf.indexOf("name = \"float-mpv\"") !== -1)
+            verify(conf.indexOf("match = { class = \"^(mpv)$\" }") !== -1)
+            verify(conf.indexOf("pin = true") !== -1)
 
             backend.settings.addAutostart("Wayvnc", "wayvnc")
             backend.settings.addEnvVar("QT_QPA_PLATFORM", "wayland")
             conf = backend.settings.generatedHyprConf
-            verify(conf.indexOf("exec-once = wayvnc") !== -1)
-            verify(conf.indexOf("env = QT_QPA_PLATFORM,wayland") !== -1)
+            verify(conf.indexOf("hl.exec_cmd(\"wayvnc\")") !== -1)
+            verify(conf.indexOf("hl.env(\"QT_QPA_PLATFORM\", \"wayland\")") !== -1)
         }
 
         function test_json_export_apply_and_launcher_safe_command() {

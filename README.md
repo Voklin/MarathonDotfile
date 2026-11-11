@@ -20,8 +20,8 @@
 3. **`shell/` (CachyOS Live Quickshell Layer):**
    - [`shell/shell.qml`](shell/shell.qml) — `ShellRoot`, `GlobalShortcut`, `IpcHandler` (`qs ipc call marathon ...`), `LazyLoader` для скрытых оверлеев.
    - [`shell/services/`](shell/services/) — событийные адаптеры на `Quickshell.Hyprland`, `Quickshell.Services.Pipewire`, `Quickshell.Bluetooth`, `Quickshell.Services.UPower`, `DesktopEntries`, `NotificationServer` (с проверкой отсутствия конфликтующего D-Bus демона), `nmcli monitor` и `brightnessctl` через массивы аргументов без POSIX shell-обёрток.
-4. **`hypr/` (Изолированный профиль Hyprland):**
-   - [`hypr/hyprland.conf`](hypr/hyprland.conf) + `hypr/modules/*.conf` (современный `hyprlang >= 0.53` с `match:` правилами) + [`hypr/hyprlock.conf`](hypr/hyprlock.conf) (реальная PAM-блокировка).
+4. **`hypr/` (Изолированный профиль Hyprland Lua):**
+   - [`hypr/hyprland.lua`](hypr/hyprland.lua) + `hypr/modules/*.lua` (современный Lua-конфиг Hyprland `>= 0.55` на API `hl.*` + `hypr/user-settings.lua`) + [`hypr/hyprlock.conf`](hypr/hyprlock.conf) (реальная PAM-блокировка).
 5. **`design/` (Оригинальная векторная графика):**
    - [`design/icons/`](design/icons/) — 28 авторских геометрических SVG (`16x16`), синхронизированных с `TacticalIcon.qml`.
    - [`design/wallpapers/`](design/wallpapers/) — 4K/1080p геометрические обои и экран блокировки.
@@ -60,7 +60,7 @@ python preview/run_preview.py --view gallery
 bash setup.sh
 ```
 
-Мастер показывает состояние зависимостей и предлагает установку/обновление, dry-run, диагностику, восстановление тем, откат профиля и удаление. Перед установкой он показывает итоговый план. Применение тем внешних приложений — отдельный выбор, по умолчанию выключенный. Пакеты устанавливаются вручную: список для проверки находится в `scripts/packages-cachyos.txt`, доступность Quickshell проверяйте отдельно в своей системе.
+Мастер показывает состояние зависимостей и предлагает установку/обновление (с автоматической докачкой отсутствующих зависимостей из `scripts/packages-cachyos.txt` через `pacman -S --needed` и `paru`/`yay`), dry-run, диагностику, восстановление тем, откат профиля и удаление. Перед установкой он показывает итоговый план. Применение тем внешних приложений — отдельный выбор, по умолчанию выключенный.
 
 Проверка плана без записи:
 
@@ -68,7 +68,7 @@ bash setup.sh
 bash setup.sh --dry-run
 ```
 
-Профиль устанавливается в `~/.config/marathon-tactical/`, команда сессии — в `~/.local/bin/marathon-tactical-session`. Мастер требует стандартный `XDG_CONFIG_HOME=$HOME/.config`, поскольку профиль Hyprland использует этот путь. Обновление сначала копирует новые файлы во временный каталог и сохраняет предыдущий профиль в уникальную резервную копию. Сохраняются `settings.json`, `scratchpad.txt`, `hypr/user-settings.conf` и сгенерированные палитры приложений. Симлинки в пути назначения отклоняются.
+Профиль устанавливается в `~/.config/marathon-tactical/`, команда сессии — в `~/.local/bin/marathon-tactical-session`. Мастер требует стандартный `XDG_CONFIG_HOME=$HOME/.config`, поскольку профиль Hyprland использует этот путь. Обновление сначала копирует новые файлы во временный каталог и сохраняет предыдущий профиль в уникальную резервную копию. Сохраняются `settings.json`, `scratchpad.txt`, `hypr/user-settings.lua` и сгенерированные палитры приложений. Симлинки в пути назначения отклоняются.
 
 Запуск графической сессии выполняется вручную после проверки совместимости. Текущая сессия, действующие конфиги Hyprland/Quickshell, службы и display manager автоматически не меняются.
 

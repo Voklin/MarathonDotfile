@@ -39,5 +39,11 @@
 - `tests/test_installer.py`: 14 тестов, **13 PASS / 1 SKIP** на Windows Bash (проверка симлинков пропущена: WinError 1314). В тестах `chmod` заглушён; Linux для меню моделируется. `tests/test_contracts_and_assets.py`: **7 PASS**. Bash-синтаксис проверен, включая `setup.sh` и общий модуль.
 - Инструкция: [`INSTALLER.md`](INSTALLER.md). POSIX permissions, темы с реальными симлинками и Hyprland/Quickshell runtime: **`NOT RUN — requires CachyOS`**. После локальной реализации владелец отдельно разрешил commit/push установщика в GitHub.
 
+## Миграция на Hyprland Lua (`hyprland.lua`) и автодокачка зависимостей — 2026-11-11
+
+- **Hyprland Lua (`ADR-010`):** профиль композитора полностью переведён с `hyprlang` (`.conf`) на современный Lua API (`hl.config`, `hl.monitor`, `hl.window_rule`, `hl.layer_rule`, `hl.curve`, `hl.animation`, `hl.bind`, `hl.dsp.*`, `hl.env`, `hl.on("hyprland.start", ...)`): [`hypr/hyprland.lua`](../hypr/hyprland.lua), [`hypr/user-settings.lua`](../hypr/user-settings.lua) и 8 модулей в [`hypr/modules/`](../hypr/modules/). Генератор переопределений в [`SettingsAdapter.qml`](../shell/services/SettingsAdapter.qml) и [`SettingsMock.qml`](../preview/mocks/SettingsMock.qml) теперь формирует `hypr/user-settings.lua`.
+- **Автодокачка зависимостей в установщике:** в [`scripts/profile-common.sh`](../scripts/profile-common.sh), [`scripts/install.sh`](../scripts/install.sh) и [`setup.sh`](../setup.sh) добавлено автоматическое определение и докачивание отсутствующих пакетов из [`scripts/packages-cachyos.txt`](../scripts/packages-cachyos.txt) (`sudo pacman -S --needed --noconfirm` для пакетной базы репозиториев и `paru`/`yay` для AUR-пакетов, с поддержкой `--dry-run`, `--install-deps`, `--no-deps`, `--deps-only`).
+- **Проверки на Windows 11:** `96` QML-файлов (`check_qml.py` PASS), `63/63` QtQuickTest PASS (`tests/run_tests.py`), `7/7` contract/asset PASS (`tests/test_contracts_and_assets.py`). Живой рантайм на CachyOS — **`NOT RUN — requires CachyOS`**.
+
 ## Архитектурные решения
-- `ADR-001`–`ADR-009` зафиксированы в [`DECISIONS.md`](DECISIONS.md).
+- `ADR-001`–`ADR-010` зафиксированы в [`DECISIONS.md`](DECISIONS.md).

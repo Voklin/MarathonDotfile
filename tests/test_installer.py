@@ -43,7 +43,10 @@ class InstallerTests(unittest.TestCase):
         self.env.pop("BASH_ENV", None)
         # BASH_ENV also supplies deterministic test doubles for failure tests.
         self.helper = Path(self.tmp.name) / "test-env.sh"
-        self.helper.write_text("chmod() { return 0; }\n" if os.name == "nt" else "", encoding="utf-8")
+        base_stubs = "pacman() { return 0; }\n"
+        if os.name == "nt":
+            base_stubs += "chmod() { return 0; }\n"
+        self.helper.write_text(base_stubs, encoding="utf-8")
         self.env["BASH_ENV"] = shell_path(self.helper)
 
     def run_script(self, script, *args, input="", ok=True):
@@ -75,12 +78,12 @@ class InstallerTests(unittest.TestCase):
         self.install()
         (self.target / "settings.json").write_text('{"accent":"lime"}')
         (self.target / "scratchpad.txt").write_text("MY NOTES")
-        (self.target / "hypr/user-settings.conf").write_text("# MY BINDS")
+        (self.target / "hypr/user-settings.lua").write_text("-- MY BINDS")
         (self.target / "apps/generated/ghostty-colors").write_text("MY COLORS")
         self.install()
         self.install()
         self.assertEqual((self.target / "scratchpad.txt").read_text(), "MY NOTES")
-        self.assertEqual((self.target / "hypr/user-settings.conf").read_text(), "# MY BINDS")
+        self.assertEqual((self.target / "hypr/user-settings.lua").read_text(), "-- MY BINDS")
         self.assertEqual((self.target / "apps/generated/ghostty-colors").read_text(), "MY COLORS")
         self.assertIn("lime", (self.target / "settings.json").read_text())
         backups = list((self.config / "marathon-tactical-backups").iterdir())
@@ -111,7 +114,7 @@ class InstallerTests(unittest.TestCase):
                                 capture_output=True, env=self.env, timeout=10)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.decode().splitlines(),
-                         ["--config", shell_path(self.target / "hypr/hyprland.conf"), "test argument"])
+                         ["--config", shell_path(self.target / "hypr/hyprland.lua"), "test argument"])
 
     def run_script_path_syntax(self, path):
         result = subprocess.run([self.bash, "-n", shell_path(path)], capture_output=True, text=True, env=self.env)
@@ -239,6 +242,43 @@ class InstallerTests(unittest.TestCase):
         staged = self.home / ".local/share/marathon-tactical/marathon-tactical.desktop"
         self.assertTrue(staged.is_file(), sess_res.stdout)
         self.assertIn("Exec=", staged.read_text())
+
+    def test_auto_dependency_download_invokes_package_manager(self):
+        pkg_log = Path(self.tmp.name) / "pkg.log"
+        with self.helper.open("a", encoding="utf-8") as stream:
+            stream.write(f'''
+pacman() {{
+    if [[ "${{1:-}}" == "-Qi" ]]; then
+        local pkg="${{@: -1}}"
+        if [[ "$pkg" == "ghostty" || "$pkg" == "quickshell" || "$pkg" == "quickshell-git" ]]; then
+            return 1
+        fi
+        return 0
+    fi
+    if [[ "${{1:-}}" == "-Si" ]]; then
+        local pkg="${{@: -1}}"
+        [[ "$pkg" != "quickshell" ]]
+        return $?
+    fi
+    return 0
+}}
+sudo() {{
+    printf "SUDO:%s\\n" "$*" >> "{shell_path(pkg_log)}"
+}}
+paru() {{
+    printf "PARU:%s\\n" "$*" >> "{shell_path(pkg_log)}"
+}}
+''')
+        dry_res = self.run_script("scripts/install.sh", "--dry-run")
+        self.assertIn("sudo pacman -S --needed --noconfirm -- ghostty", dry_res.stdout)
+        self.assertIn("paru -S --needed --noconfirm -- quickshell", dry_res.stdout)
+        self.assertFalse(pkg_log.exists())
+
+        self.run_script("scripts/install.sh", "--yes")
+        logged = pkg_log.read_text(encoding="utf-8")
+        self.assertIn("SUDO:pacman -S --needed --noconfirm -- ghostty", logged)
+        self.assertIn("PARU:-S --needed --noconfirm -- quickshell", logged)
+        self.assertTrue((self.target / "hypr/hyprland.lua").is_file())
 
 
 if __name__ == "__main__":
