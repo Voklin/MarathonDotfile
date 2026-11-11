@@ -1,0 +1,37 @@
+module ui.components
+HudDivider 1.0 HudDivider.qml
+TacticalIcon 1.0 TacticalIcon.qml
+StatusPill 1.0 StatusPill.qml
+SegmentedMeter 1.0 SegmentedMeter.qml
+TacticalPanel 1.0 TacticalPanel.qml
+TacticalButton 1.0 TacticalButton.qml
+TacticalToggle 1.0 TacticalToggle.qml
+TacticalSlider 1.0 TacticalSlider.qml
+TacticalTextField 1.0 TacticalTextField.qml
+EmptyState 1.0 EmptyState.qml
+ConfirmDialog 1.0 ConfirmDialog.qml
+WorkspaceIndicator 1.0 WorkspaceIndicator.qml
+ActiveWindowModule 1.0 ActiveWindowModule.qml
+ClockModule 1.0 ClockModule.qml
+TelemetryCluster 1.0 TelemetryCluster.qml
+TopHudBar 1.0 TopHudBar.qml
+LauncherPanel 1.0 LauncherPanel.qml
+ControlCenterPanel 1.0 ControlCenterPanel.qml
+NotificationCenterPanel 1.0 NotificationCenterPanel.qml
+OsdOverlay 1.0 OsdOverlay.qml
+SessionMenuPanel 1.0 SessionMenuPanel.qml
+LockScreenOverlay 1.0 LockScreenOverlay.qml
+NotificationToastStack 1.0 NotificationToastStack.qml
+RunnerEmblemCard 1.0 RunnerEmblemCard.qml
+SettingsStepper 1.0 SettingsStepper.qml
+SettingsChoiceGroup 1.0 SettingsChoiceGroup.qml
+SettingsShellSections 1.0 SettingsShellSections.qml
+SettingsHyprSections 1.0 SettingsHyprSections.qml
+SettingsSystemSections 1.0 SettingsSystemSections.qml
+SettingsHubPanel 1.0 SettingsHubPanel.qml
+ClipboardPanel 1.0 ClipboardPanel.qml
+CapturePanel 1.0 CapturePanel.qml
+SystemMonitorPanel 1.0 SystemMonitorPanel.qml
+CalendarNotesPanel 1.0 CalendarNotesPanel.qml
+CheatsheetPanel 1.0 CheatsheetPanel.qml
+

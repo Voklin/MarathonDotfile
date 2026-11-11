@@ -1,0 +1,50 @@
+// MARATHON Tactical — Fastfetch Hardware Specimen Configuration
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  "logo": {
+    "type": "small",
+    "color": {
+      "1": "38;2;201;255;22",
+      "2": "38;2;240;244;232"
+    },
+    "padding": {
+      "top": 1,
+      "left": 1,
+      "right": 3
+    }
+  },
+  "display": {
+    "separator": " // ",
+    "color": {
+      "keys": "38;2;201;255;22",
+      "title": "38;2;201;255;22",
+      "separator": "38;2;53;77;36",
+      "output": "38;2;240;244;232"
+    }
+  },
+  "modules": [
+    {
+      "type": "title",
+      "format": "{user-name}@{host-name} // MARATHON TACTICAL"
+    },
+    {
+      "type": "custom",
+      "format": "----------------------------------------------"
+    },
+    { "type": "os", "key": "SYSTEM  " },
+    { "type": "kernel", "key": "KERNEL  " },
+    { "type": "wm", "key": "WM      " },
+    { "type": "terminal", "key": "TERM    " },
+    { "type": "shell", "key": "SHELL   " },
+    { "type": "cpu", "key": "CPU     " },
+    { "type": "gpu", "key": "GPU     " },
+    { "type": "memory", "key": "MEMORY  " },
+    { "type": "disk", "key": "DISK    ", "folders": "/" },
+    { "type": "uptime", "key": "UPTIME  " },
+    {
+      "type": "custom",
+      "format": "----------------------------------------------"
+    },
+    "colors"
+  ]
+}

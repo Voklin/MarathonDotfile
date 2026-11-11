@@ -1,0 +1,27 @@
+# MARATHON Tactical — Development Status
+
+- **Текущий этап:** `System Apps, Redesign & User-Friendly UX Pack` (`DONE Offline / CachyOS Verification Pending`)
+- **Предыдущий этап:** `Post-MVP Extension: GUI Settings Hub` (`DONE Offline / CachyOS Pending`)
+
+## Таблица этапов (1–12)
+
+| Этап | Название | Статус | Доказательство / Комментарий |
+|---|---|---|---|
+| 1 | Аудит | `DONE (Windows) / CachyOS Pending` | [`ENVIRONMENT_REPORT.md`](ENVIRONMENT_REPORT.md): подтверждены Windows 11, 2 дисплея, `PySide6 6.12.0` (`Qt 6.12.0`), `pyside6-qmllint`, `QtQuickTest`, 17 навыков; CachyOS — `NOT RUN — requires CachyOS` |
+| 2 | Каркас | `DONE` | [`ui/tokens/Tokens.qml`](../ui/tokens/Tokens.qml), [`ui/animations/`](../ui/animations/), [`ui/contracts/ShellContracts.qml`](../ui/contracts/ShellContracts.qml), [`preview/mocks/`](../preview/mocks/), [`preview/scenarios/ScenarioCatalog.qml`](../preview/scenarios/ScenarioCatalog.qml) (`S01`–`S10`), [`scripts/check_qml.py`](../scripts/check_qml.py) |
+| 3 | Библиотека компонентов | `DONE` | Переиспользуемые примитивы в [`ui/components/`](../ui/components/) (`SettingsChoiceGroup`, `SettingsStepper`, `RunnerEmblemCard` и др.) + [`ComponentGalleryScreen.qml`](../ui/screens/ComponentGalleryScreen.qml) + `TacticalButton` (`clip`/`elide`) |
+| 4 | Tactical HUD | `DONE` | `WorkspaceIndicator`, `ActiveWindowModule`, `ClockModule` (кликабельный с бейджем Pomodoro), `TelemetryCluster`, `TopHudBar`, `DesktopShellScreen` |
+| 5 | Launcher | `DONE` | `LauncherPanel` (`LIST`/`GRID`, MRU недавние, вкладка `CMDS`, inline математический/единичный/hex калькулятор `=`, префиксы `>` и `@`, `↑/↓/←/→/Tab/Enter/Escape`) |
+| 6 | Системные панели и утилиты | `DONE` | `ControlCenterPanel` (2x2 Quick Controls + MPRIS плеер + кнопки утилит), `ClipboardPanel`, `CapturePanel`, `SystemMonitorPanel` (+ PipeWire per-app mixer), `CalendarNotesPanel` (+ Pomodoro + Scratchpad), `CheatsheetPanel`, `NotificationCenterPanel`, `OsdOverlay`, `SessionMenuPanel`, `LockScreenOverlay` |
+| 7 | Linux Integration | `DONE Offline / CachyOS Pending` | [`shell/`](../shell/) (14 live-адаптеров + `shell.qml` + `shell/utilities/` + `SettingsWindow` + `BackdropWindow`) + [`hypr/`](../hypr/) (`hyprland.conf`, `hypridle.conf`, `user-settings.conf`, модули `>=0.53` `match:`, `hyprlock.conf`) + [`KEYBINDINGS.md`](KEYBINDINGS.md) + `ADR-006`/`ADR-007`/`ADR-008`; рантайм на CachyOS — `NOT RUN — requires CachyOS` |
+| 8 | Оформление | `DONE` | [`design/`](../design/): 36 авторских геометрических SVG (`design/icons/`), `FONTS.md` (SIL OFL 1.1), 4K/1080p обои SVG+PNG (`design/wallpapers/`), живой кастомизатор + [`apps/`](../apps/) (14 стилизованных конфигов + `apps/generated/` живых палитр) |
+| 9 | Тестирование | `DONE Offline / CachyOS Pending` | [`tests/test_contracts_and_assets.py`](../tests/test_contracts_and_assets.py) (`7/7 OK`), [`tests/run_tests.py`](../tests/run_tests.py) (`55/55 PASS`, включая `MarathonSystemAppsAndUxSuite`), [`TEST_PLAN.md`](TEST_PLAN.md); CachyOS интеграционные проверки — `NOT RUN — requires CachyOS` |
+| 10 | Релиз и скрипты | `DONE Offline / CachyOS Pending` | [`scripts/install.sh`](../scripts/install.sh) (`--dry-run` + `--apply-app-themes` + backup + isolated `~/.config/marathon-tactical/`), [`scripts/apply-themes.sh`](../scripts/apply-themes.sh) (`--dry-run` / `--restore`), [`scripts/session-daemons.sh`](../scripts/session-daemons.sh), [`scripts/copy-image.sh`](../scripts/copy-image.sh), [`scripts/packages-cachyos.txt`](../scripts/packages-cachyos.txt), [`scripts/uninstall.sh`](../scripts/uninstall.sh), [`scripts/doctor.sh`](../scripts/doctor.sh) |
+| 11 | Post-MVP GUI Settings Hub | `DONE Offline / CachyOS Pending` | [`SettingsHubPanel.qml`](../ui/components/SettingsHubPanel.qml) (17 секций в 5 группах + синхронизация тем приложений + матрица здоровья `14 CONTRACTS`) |
+| 12 | System Apps & UX Expansion | `DONE Offline / CachyOS Pending` | Двойной контур (встроенные QML-утилиты + внешние конфиги `apps/`), 14 контрактов, 36 SVG-иконок, расширение `preview/` и 6 новых тестов `tst_system_apps_and_ux.qml`, визуальный аудит PNG-скриншотов |
+
+## Незавершённые функции / Ожидает стенда CachyOS
+- Живой аудит и интеграционная приёмка на целевой ОС CachyOS (`bash scripts/doctor.sh`, `bash scripts/install.sh --dry-run`, `bash scripts/apply-themes.sh --dry-run`, запуск `Hyprland --config ...`, `quickshell -p ...`, PipeWire streams, MPRIS, `grim`/`slurp`/`satty`/`cliphist`/`hyprpicker`/`hypridle`/`hyprsunset`, запись `~/.config/marathon-tactical/apps/generated/*`) — **`NOT RUN — requires CachyOS`**.
+
+## Архитектурные решения
+- `ADR-001`–`ADR-008` зафиксированы в [`DECISIONS.md`](DECISIONS.md).

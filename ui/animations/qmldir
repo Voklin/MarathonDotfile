@@ -1,0 +1,5 @@
+module ui.animations
+TacticalNumberAnimation 1.0 TacticalNumberAnimation.qml
+TacticalColorAnimation 1.0 TacticalColorAnimation.qml
+PanelReveal 1.0 PanelReveal.qml
+

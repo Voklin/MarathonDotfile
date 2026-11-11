@@ -1,0 +1,4 @@
+module shell.notifications
+NotificationCenterWindow 1.0 NotificationCenterWindow.qml
+NotificationToastWindow 1.0 NotificationToastWindow.qml
+

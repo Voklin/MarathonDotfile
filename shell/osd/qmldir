@@ -1,0 +1,3 @@
+module shell.osd
+OsdWindow 1.0 OsdWindow.qml
+

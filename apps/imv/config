@@ -1,0 +1,19 @@
+# MARATHON Tactical — imv Tactical Image Viewer
+[options]
+background = 080B0A
+overlay_background_color = 141C18
+overlay_background_alpha = E6
+overlay_text_color = C9FF16
+overlay_font = JetBrains Mono:11
+overlay_text = MARATHON // $imv_current_file [$imv_current_index/$imv_file_count] // ${imv_width}x${imv_height} (${imv_scale}%)
+scaling_mode = shrink
+fullscreen = false
+
+[binds]
+<Left> = prev
+<Right> = next
+<equal> = zoom 1
+<minus> = zoom -1
+r = rotate by 90
+f = fullscreen
+q = quit

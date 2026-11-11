@@ -1,0 +1,56 @@
+/* MARATHON Tactical — GTK 4.0 & libadwaita Sharp Tactical Overrides */
+
+@define-color accent_color @marathon_signal;
+@define-color accent_bg_color @marathon_signal;
+@define-color accent_fg_color @marathon_text_on_signal;
+@define-color destructive_color @marathon_alert;
+@define-color destructive_bg_color @marathon_alert;
+@define-color destructive_fg_color @marathon_text;
+@define-color success_color @marathon_signal;
+@define-color warning_color @marathon_warning;
+@define-color error_color @marathon_alert;
+
+@define-color window_bg_color @marathon_bg;
+@define-color window_fg_color @marathon_text;
+@define-color view_bg_color @marathon_bg;
+@define-color view_fg_color @marathon_text;
+@define-color headerbar_bg_color @marathon_surface;
+@define-color headerbar_fg_color @marathon_text;
+@define-color headerbar_border_color @marathon_border;
+@define-color sidebar_bg_color @marathon_surface;
+@define-color sidebar_fg_color @marathon_text;
+@define-color card_bg_color @marathon_surface;
+@define-color card_fg_color @marathon_text;
+@define-color dialog_bg_color @marathon_surface;
+@define-color dialog_fg_color @marathon_text;
+@define-color popover_bg_color @marathon_surface;
+@define-color popover_fg_color @marathon_text;
+
+* {
+    border-radius: 0px;
+}
+
+headerbar {
+    border-bottom: 1px solid @marathon_border;
+    box-shadow: none;
+}
+
+button,
+entry,
+popover > contents {
+    border: 1px solid @marathon_border;
+    box-shadow: none;
+}
+
+button:hover {
+    background-color: @marathon_elevated;
+    border-color: @marathon_signal;
+}
+
+scrollbar slider {
+    background-color: @marathon_border;
+}
+
+scrollbar slider:hover {
+    background-color: @marathon_signal;
+}

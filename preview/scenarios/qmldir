@@ -1,0 +1,3 @@
+module preview.scenarios
+singleton ScenarioCatalog 1.0 ScenarioCatalog.qml
+

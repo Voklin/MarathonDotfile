@@ -1,0 +1,5 @@
+module shell.panels
+TopHudWindow 1.0 TopHudWindow.qml
+SessionMenuWindow 1.0 SessionMenuWindow.qml
+BackdropWindow 1.0 BackdropWindow.qml
+

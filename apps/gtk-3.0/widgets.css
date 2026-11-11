@@ -1,0 +1,89 @@
+/* MARATHON Tactical — GTK 3.0 Sharp Tactical Geometry & Semantic Overrides */
+
+@define-color theme_bg_color @marathon_bg;
+@define-color theme_fg_color @marathon_text;
+@define-color theme_base_color @marathon_bg;
+@define-color theme_text_color @marathon_text;
+@define-color theme_selected_bg_color @marathon_signal;
+@define-color theme_selected_fg_color @marathon_text_on_signal;
+@define-color borders @marathon_border;
+
+* {
+    border-radius: 0px;
+}
+
+window,
+dialog,
+.background {
+    background-color: @marathon_bg;
+    color: @marathon_text;
+}
+
+headerbar,
+menubar,
+toolbar {
+    background-color: @marathon_surface;
+    color: @marathon_text;
+    border-bottom: 1px solid @marathon_border;
+    box-shadow: none;
+}
+
+button,
+entry,
+combobox > box > button {
+    background-color: @marathon_surface;
+    color: @marathon_text;
+    border: 1px solid @marathon_border;
+    box-shadow: none;
+}
+
+button:hover {
+    background-color: @marathon_elevated;
+    border-color: @marathon_signal;
+}
+
+button.suggested-action,
+button:checked {
+    background-color: @marathon_signal;
+    color: @marathon_text_on_signal;
+    border-color: @marathon_signal;
+}
+
+button.destructive-action {
+    background-color: @marathon_alert;
+    color: @marathon_text;
+    border-color: @marathon_alert;
+}
+
+entry:focus {
+    border-color: @marathon_signal;
+}
+
+popover,
+menu,
+.context-menu {
+    background-color: @marathon_surface;
+    color: @marathon_text;
+    border: 1px solid @marathon_border;
+}
+
+selection,
+*:selected {
+    background-color: @marathon_signal;
+    color: @marathon_text_on_signal;
+}
+
+scrollbar slider {
+    background-color: @marathon_border;
+    min-width: 6px;
+    min-height: 6px;
+}
+
+scrollbar slider:hover {
+    background-color: @marathon_signal;
+}
+
+switch:checked {
+    background-color: @marathon_signal;
+    border-color: @marathon_signal;
+}

@@ -1,0 +1,35 @@
+{
+  "version": 2,
+  "skills": {
+    "frontend-design": {
+      "source": "../../.gemini/antigravity/brain/e6c77cfd-5293-40d7-84c0-65b372af14b8/scratch/anthropics-skills/skills-2c5958ecac7cee2b583967a2c4981d0f4a75c579",
+      "sourceType": "local",
+      "computedHash": "83485963700bcf11d5bf78118facb301676b69d918fee2e45a95e7f1a2840f6c",
+      "installMode": "copy"
+    },
+    "requesting-code-review": {
+      "source": "../../.gemini/antigravity/brain/e6c77cfd-5293-40d7-84c0-65b372af14b8/scratch/obra-superpowers/superpowers-22f0b463e7a5e579904dd6211a520321035526f7",
+      "sourceType": "local",
+      "computedHash": "32bcc25e8c3315d0150f646ee0067c9d4bfbc7719c34012db9c202e17cce8a14",
+      "installMode": "copy"
+    },
+    "skill-creator": {
+      "source": "../../.gemini/antigravity/brain/e6c77cfd-5293-40d7-84c0-65b372af14b8/scratch/anthropics-skills/skills-2c5958ecac7cee2b583967a2c4981d0f4a75c579",
+      "sourceType": "local",
+      "computedHash": "2d7f889e6ae93c6c27d699856942c336b5b8644537496987d5571043d059b1dc",
+      "installMode": "copy"
+    },
+    "systematic-debugging": {
+      "source": "../../.gemini/antigravity/brain/e6c77cfd-5293-40d7-84c0-65b372af14b8/scratch/obra-superpowers/superpowers-22f0b463e7a5e579904dd6211a520321035526f7",
+      "sourceType": "local",
+      "computedHash": "79ff0583175346e39431b0dc713b223edd1bd7a7ea2b6c8b78b2fb9a3fed6782",
+      "installMode": "copy"
+    },
+    "verification-before-completion": {
+      "source": "../../.gemini/antigravity/brain/e6c77cfd-5293-40d7-84c0-65b372af14b8/scratch/obra-superpowers/superpowers-22f0b463e7a5e579904dd6211a520321035526f7",
+      "sourceType": "local",
+      "computedHash": "09b0e3a4689c1c38a3b8fc6ef57a1d4165aa33c0013d546dbde9dd348941a319",
+      "installMode": "copy"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+module preview.mocks
+WorkspacesMock 1.0 WorkspacesMock.qml
+ActiveWindowMock 1.0 ActiveWindowMock.qml
+AudioMock 1.0 AudioMock.qml
+NetworkMock 1.0 NetworkMock.qml
+BluetoothMock 1.0 BluetoothMock.qml
+BatteryMock 1.0 BatteryMock.qml
+BrightnessMock 1.0 BrightnessMock.qml
+NotificationsMock 1.0 NotificationsMock.qml
+SessionMock 1.0 SessionMock.qml
+LauncherMock 1.0 LauncherMock.qml
+AppearanceMock 1.0 AppearanceMock.qml
+SettingsMock 1.0 SettingsMock.qml
+MediaMock 1.0 MediaMock.qml
+UtilitiesMock 1.0 UtilitiesMock.qml
+MockBackend 1.0 MockBackend.qml
+

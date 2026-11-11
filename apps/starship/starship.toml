@@ -1,0 +1,67 @@
+# MARATHON Tactical — Starship Prompt Configuration
+# Sharp tactical telemetry prompt (void black / lime signal / semantic status)
+
+"$schema" = 'https://starship.rs/config-schema.json'
+
+add_newline = false
+command_timeout = 600
+
+format = """
+[\\[](#354D24)\
+$username\
+$hostname\
+$directory\
+$git_branch\
+$git_status\
+$cmd_duration\
+[\\]](#354D24)\
+$line_break\
+$character"""
+
+[username]
+show_always = false
+style_user = "bold #C9FF16"
+style_root = "bold #FF4268"
+format = "[$user]($style)"
+
+[hostname]
+ssh_only = true
+style = "bold #F2B705"
+format = "[@$hostname]($style) [//](#354D24) "
+
+[directory]
+style = "bold #F0F4E8"
+truncation_length = 4
+truncation_symbol = "…/"
+read_only = " [RO]"
+read_only_style = "#FF4268"
+format = "[$path]($style)[$read_only]($read_only_style)"
+
+[git_branch]
+symbol = "GIT:"
+style = "bold #C9FF16"
+format = " [//](#354D24) [$symbol$branch]($style)"
+
+[git_status]
+style = "bold #F2B705"
+format = " ([\\[$all_status$ahead_behind\\]]($style))"
+conflicted = "!"
+ahead = "+${count}"
+behind = "-${count}"
+diverged = "<>${ahead_count}/${behind_count}"
+untracked = "?"
+stashed = "*"
+modified = "~"
+staged = "+"
+renamed = "R"
+deleted = "X"
+
+[cmd_duration]
+min_time = 1500
+style = "#99A89C"
+format = " [//](#354D24) [$duration]($style)"
+
+[character]
+success_symbol = "[>](bold #C9FF16)"
+error_symbol = "[!](bold #FF4268)"
+vicmd_symbol = "[N](bold #F2B705)"

@@ -1,0 +1,23 @@
+# MARATHON Tactical — Ghostty Dynamic Faction Palette (RUNNER)
+background = #080B0A
+foreground = #F0F4E8
+cursor-color = #C9FF16
+cursor-text = #080B0A
+selection-background = #C9FF16
+selection-foreground = #080B0A
+palette = 0=#141C18
+palette = 1=#FF4268
+palette = 2=#C9FF16
+palette = 3=#F2B705
+palette = 4=#8FB812
+palette = 5=#354D24
+palette = 6=#C9FF16
+palette = 7=#99A89C
+palette = 8=#1A241F
+palette = 9=#FF4268
+palette = 10=#C9FF16
+palette = 11=#F2B705
+palette = 12=#C9FF16
+palette = 13=#8FB812
+palette = 14=#F0F4E8
+palette = 15=#F0F4E8

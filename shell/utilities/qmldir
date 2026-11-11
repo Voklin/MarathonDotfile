@@ -1,0 +1,6 @@
+module shell.utilities
+ClipboardWindow 1.0 ClipboardWindow.qml
+CaptureWindow 1.0 CaptureWindow.qml
+SystemMonitorWindow 1.0 SystemMonitorWindow.qml
+CalendarWindow 1.0 CalendarWindow.qml
+CheatsheetWindow 1.0 CheatsheetWindow.qml

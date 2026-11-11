@@ -1,0 +1,59 @@
+# ==============================================================================
+# MARATHON Tactical — Recommended CachyOS / Arch Linux Package List
+# Review and install manually via:
+#   sudo pacman -S --needed $(grep -vE '^(#|$)' scripts/packages-cachyos.txt)
+# NOTE: Optional AUR / runtime packages marked accordingly in comments.
+# ==============================================================================
+
+# --- Core Compositor, Shell & Session ---
+hyprland
+hyprlock
+hypridle
+hyprpicker
+# hyprsunset            # Optional Night Light (official repo or AUR: hyprsunset)
+# quickshell            # Install from CachyOS/AUR (`quickshell` or `quickshell-git`)
+polkit-kde-agent
+xdg-desktop-portal-hyprland
+xdg-desktop-portal-gtk
+
+# --- Audio, Network, Backlight & Hardware Telemetry ---
+wireplumber
+pipewire
+pipewire-pulse
+pavucontrol
+networkmanager
+bluez
+bluez-utils
+brightnessctl
+upower
+pciutils
+
+# --- Tactical Terminal, Prompt & CLI Utilities ---
+ghostty
+alacritty
+# kitty                 # Optional alternative GPU terminal
+# foot                  # Optional lightweight Wayland terminal
+starship
+fastfetch
+btop
+yazi
+
+# --- Media, Image & Document Viewers + Toolkit Theming ---
+mpv
+imv
+zathura
+zathura-pdf-mupdf
+qt6ct
+dolphin
+
+# --- Wayland Screenshots, Annotation & Clipboard ---
+grim
+slurp
+satty
+cliphist
+wl-clipboard
+
+# --- Fonts (Open-Source Verified Licenses — see design/FONTS.md) ---
+ttf-jetbrains-mono
+ttf-space-grotesk
+inter-font

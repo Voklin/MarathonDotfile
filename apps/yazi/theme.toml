@@ -1,0 +1,36 @@
+# MARATHON Tactical — Yazi Baseline Theme (synced via ~/.config/marathon-tactical/apps/generated/yazi-colors.toml)
+[mgr]
+cwd = { fg = "#C9FF16", bold = true }
+hovered = { fg = "#080B0A", bg = "#C9FF16", bold = true }
+preview_hovered = { underline = true }
+find_keyword = { fg = "#F2B705", bold = true }
+find_position = { fg = "#C9FF16", bg = "reset", italic = true }
+marker_copied = { fg = "#C9FF16", bg = "#C9FF16" }
+marker_cut = { fg = "#FF4268", bg = "#FF4268" }
+marker_marked = { fg = "#8FB812", bg = "#8FB812" }
+marker_selected = { fg = "#F2B705", bg = "#F2B705" }
+tab_active = { fg = "#080B0A", bg = "#C9FF16", bold = true }
+tab_inactive = { fg = "#99A89C", bg = "#141C18" }
+border_symbol = "│"
+border_style = { fg = "#354D24" }
+
+[status]
+separator_open = ""
+separator_close = ""
+mode_normal = { fg = "#080B0A", bg = "#C9FF16", bold = true }
+mode_select = { fg = "#080B0A", bg = "#F2B705", bold = true }
+mode_unset = { fg = "#080B0A", bg = "#FF4268", bold = true }
+progress_label = { fg = "#F0F4E8", bold = true }
+progress_normal = { fg = "#C9FF16", bg = "#141C18" }
+progress_error = { fg = "#FF4268", bg = "#141C18" }
+
+[input]
+border = { fg = "#C9FF16" }
+title = { fg = "#F0F4E8" }
+value = { fg = "#F0F4E8" }
+selected = { reversed = true }
+
+[notify]
+title_info = { fg = "#C9FF16" }
+title_warn = { fg = "#F2B705" }
+title_error = { fg = "#FF4268" }

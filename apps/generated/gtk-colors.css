@@ -1,0 +1,12 @@
+/* MARATHON Tactical — GTK 3.0 / 4.0 Dynamic Faction Palette (RUNNER) */
+@define-color marathon_bg #080B0A;
+@define-color marathon_surface #141C18;
+@define-color marathon_elevated #1A241F;
+@define-color marathon_signal #C9FF16;
+@define-color marathon_signal_muted #8FB812;
+@define-color marathon_text #F0F4E8;
+@define-color marathon_text_on_signal #080B0A;
+@define-color marathon_muted #99A89C;
+@define-color marathon_border #354D24;
+@define-color marathon_alert #FF4268;
+@define-color marathon_warning #F2B705;

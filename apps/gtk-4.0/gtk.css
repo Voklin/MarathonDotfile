@@ -1,0 +1,3 @@
+/* MARATHON Tactical — GTK 4.0 / libadwaita Entrypoint */
+@import "../generated/gtk-colors.css";
+@import "widgets.css";

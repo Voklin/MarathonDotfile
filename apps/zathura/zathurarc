@@ -1,0 +1,27 @@
+# MARATHON Tactical — Zathura Tactical PDF Viewer
+set font "JetBrains Mono 10"
+set default-bg "#080B0A"
+set default-fg "#F0F4E8"
+set statusbar-bg "#141C18"
+set statusbar-fg "#99A89C"
+set inputbar-bg "#141C18"
+set inputbar-fg "#C9FF16"
+set notification-bg "#141C18"
+set notification-fg "#F0F4E8"
+set notification-error-bg "#FF4268"
+set notification-error-fg "#F0F4E8"
+set notification-warning-bg "#F2B705"
+set notification-warning-fg "#080B0A"
+set highlight-color "#C9FF16"
+set highlight-active-color "#00F0FF"
+set completion-bg "#141C18"
+set completion-fg "#F0F4E8"
+set completion-highlight-bg "#C9FF16"
+set completion-highlight-fg "#080B0A"
+set recolor "true"
+set recolor-lightcolor "#080B0A"
+set recolor-darkcolor "#F0F4E8"
+set selection-clipboard clipboard
+set window-title-basename true
+set statusbar-h-padding 8
+set statusbar-v-padding 4

@@ -1,0 +1,6 @@
+module ui.screens
+Stage2HarnessScreen 1.0 Stage2HarnessScreen.qml
+ComponentGalleryScreen 1.0 ComponentGalleryScreen.qml
+DesktopShellScreen 1.0 DesktopShellScreen.qml
+
+

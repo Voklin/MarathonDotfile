@@ -1,0 +1,19 @@
+# MARATHON Tactical — Alacritty Dynamic Faction Palette (RUNNER)
+[colors.primary]
+background = "#080B0A"
+foreground = "#F0F4E8"
+[colors.cursor]
+text = "#080B0A"
+cursor = "#C9FF16"
+[colors.selection]
+text = "#080B0A"
+background = "#C9FF16"
+[colors.normal]
+black = "#141C18"
+red = "#FF4268"
+green = "#C9FF16"
+yellow = "#F2B705"
+blue = "#8FB812"
+magenta = "#354D24"
+cyan = "#C9FF16"
+white = "#F0F4E8"

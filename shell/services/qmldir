@@ -1,0 +1,17 @@
+module shell.services
+LiveBackend 1.0 LiveBackend.qml
+WorkspacesAdapter 1.0 WorkspacesAdapter.qml
+ActiveWindowAdapter 1.0 ActiveWindowAdapter.qml
+AudioAdapter 1.0 AudioAdapter.qml
+NetworkAdapter 1.0 NetworkAdapter.qml
+BluetoothAdapter 1.0 BluetoothAdapter.qml
+BatteryAdapter 1.0 BatteryAdapter.qml
+BrightnessAdapter 1.0 BrightnessAdapter.qml
+NotificationsAdapter 1.0 NotificationsAdapter.qml
+SessionAdapter 1.0 SessionAdapter.qml
+LauncherAdapter 1.0 LauncherAdapter.qml
+AppearanceAdapter 1.0 AppearanceAdapter.qml
+SettingsAdapter 1.0 SettingsAdapter.qml
+MediaAdapter 1.0 MediaAdapter.qml
+UtilitiesAdapter 1.0 UtilitiesAdapter.qml
+
