@@ -3,6 +3,13 @@
 ## Current Stage
 Stages 1–10 + Post-MVP GUI Settings Hub implemented on Windows 11 (`DONE Offline / CachyOS Verification Pending` — ready for live on-device verification on CachyOS Linux).
 
+## Console Installer — 2026-11-11
+
+- Scope: `setup.sh`, `scripts/profile-common.sh`, staging/unique backup in `install.sh`, preflight rollback and session-helper recovery in `uninstall.sh`, bounded version probes in `doctor.sh`, LF attributes, docs and isolated installer tests.
+- Verification: 14 installer tests executed on Windows bundled Bash: **13 PASS / 1 SKIP** (OS denies symlink creation); `chmod` is stubbed, Linux menu environment simulated. Existing contract/asset suite: **7 PASS**. Bash syntax checks included in installer tests.
+- Target-system validation: **NOT RUN — requires CachyOS** (permissions, app-theme symlinks, packages, Hyprland/Quickshell and actual GUI session). Installer does not install packages, register DM sessions or launch the compositor.
+- After local implementation, the owner explicitly authorized committing and pushing this slice to GitHub. No release publication requested. See [`INSTALLER.md`](INSTALLER.md).
+
 ## Implemented Features
 - **Design System & Pure UI (`ui/`):** Centralized reactive tokens ([`Tokens.qml`](../ui/tokens/Tokens.qml)), motion animations (`reducedMotion` & motion-multiplier-aware [`PanelReveal.qml`](../ui/animations/PanelReveal.qml)), 12 safe fallback contracts ([`ShellContracts.qml`](../ui/contracts/ShellContracts.qml)), reusable HUD, panel & Settings Hub components ([`ui/components/`](../ui/components/) including `SettingsHubPanel`, `SettingsShellSections`, `SettingsHyprSections`, `SettingsSystemSections`, `SettingsChoiceGroup`, `SettingsStepper`, `RunnerEmblemCard`), and `DesktopShellScreen` / `ComponentGalleryScreen` ([`ui/screens/`](../ui/screens/)).
 - **GUI Settings Hub (17 Sections, 5 Groups):** Live cross-section search (`Ctrl+F` / `Ctrl+K` / `/`), faction & custom hex accents, surface themes (`TACTICAL`, `DEEP_VOID`, `STEALTH_SLATE`), radius/border/motion tokens, Top/Bottom HUD edge & 9 module toggles, wallpaper/crosshair matrix selector, Launcher/Toast/OSD/Lock/Session controls, Hyprland compositor/gaps/decorations/animations, monitor mode/scale/transform/position controls, keyboard/pointer/touchpad settings, default apps & custom bind builder, Hyprland `>=0.53` `match:` window rule builder, autostart/env/GPU controls, Audio/Power/Connections management, live generated `user-settings.conf` preview + JSON snapshot export, and 12-contract diagnostics matrix.

@@ -7,12 +7,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
-TARGET_DIR="${XDG_CONFIG_HOME}/marathon-tactical"
-BIN_DIR="${HOME}/.local/bin"
-LAUNCHER_BIN="${BIN_DIR}/marathon-tactical-session"
-TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
-BACKUP_DIR="${XDG_CONFIG_HOME}/marathon-tactical-backups/${TIMESTAMP}"
+source "$SCRIPT_DIR/profile-common.sh"
 
 DRY_RUN=0
 AUTO_YES=0
@@ -63,6 +58,8 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+profile_paths
 
 log() {
     printf '[MARATHON] %s\n' "$*"
@@ -122,8 +119,8 @@ check_cmd ghostty "Primary terminal (optional)"
 check_cmd btop "TUI monitor (optional)"
 check_cmd yazi "TUI file manager (optional)"
 
-if command -v Hyprland >/dev/null 2>&1; then
-    hypr_ver="$(Hyprland --version 2>/dev/null | head -n 1 || true)"
+if command -v Hyprland >/dev/null 2>&1 && command -v timeout >/dev/null 2>&1; then
+    hypr_ver="$(timeout 5 Hyprland --version 2>/dev/null | head -n 1 || true)"
     log "Detected compositor: ${hypr_ver:-unknown}"
     if [[ "$hypr_ver" =~ 0\.([0-9]+) ]]; then
         minor="${BASH_REMATCH[1]}"
@@ -135,60 +132,71 @@ fi
 
 if [[ "$DRY_RUN" -eq 0 && "$AUTO_YES" -eq 0 ]]; then
     printf '\nProceed with isolated installation into %s? [y/N] ' "$TARGET_DIR"
-    read -r reply
+    read -r reply || reply=''
     if [[ ! "$reply" =~ ^[Yy]$ ]]; then
         log "Installation cancelled by user. Zero changes applied."
         exit 0
     fi
 fi
 
-if [[ -d "$TARGET_DIR" ]]; then
-    log "Backing up previous isolated installation to $BACKUP_DIR"
-    run_or_dry mkdir -p "$(dirname "$BACKUP_DIR")"
-    run_or_dry cp -a "$TARGET_DIR" "$BACKUP_DIR"
-fi
-
-run_or_dry mkdir -p "$TARGET_DIR" "$BIN_DIR"
-for d in ui shell hypr design apps scripts; do
-    run_or_dry rm -rf "${TARGET_DIR:?}/$d"
-    run_or_dry cp -a "$REPO_ROOT/$d" "$TARGET_DIR/$d"
-done
-if [[ "$DRY_RUN" -eq 0 && -d "$TARGET_DIR/scripts" ]]; then
-    chmod 0755 "$TARGET_DIR"/scripts/*.sh 2>/dev/null || true
-fi
-if [[ -f "$BACKUP_DIR/hypr/user-settings.conf" ]]; then
-    log "Preserving existing isolated user-settings.conf overrides"
-    run_or_dry cp -a "$BACKUP_DIR/hypr/user-settings.conf" "$TARGET_DIR/hypr/user-settings.conf"
-fi
-if [[ -f "$BACKUP_DIR/settings.json" ]]; then
-    log "Preserving existing isolated settings.json"
-    run_or_dry cp -a "$BACKUP_DIR/settings.json" "$TARGET_DIR/settings.json"
-fi
-if [[ -f "$BACKUP_DIR/scratchpad.txt" ]]; then
-    log "Preserving existing isolated scratchpad.txt"
-    run_or_dry cp -a "$BACKUP_DIR/scratchpad.txt" "$TARGET_DIR/scratchpad.txt"
-fi
-if [[ -d "$BACKUP_DIR/apps/generated" ]]; then
-    log "Preserving dynamically synced apps/generated/ palettes"
-    run_or_dry cp -a "$BACKUP_DIR/apps/generated/." "$TARGET_DIR/apps/generated/"
-fi
-
 if [[ "$DRY_RUN" -eq 1 ]]; then
+    log "DRY-RUN: stage ui, shell, hypr, design, apps, scripts; preserve settings and palettes."
+    log "DRY-RUN: back up existing profile to $BACKUP_ROOT/<unique-id> before replacement."
     printf '[DRY-RUN] Write session launcher helper: %s\n' "$LAUNCHER_BIN"
 else
-    cat > "$LAUNCHER_BIN" <<EOF
-#!/usr/bin/env bash
-set -euo pipefail
-exec Hyprland --config "$TARGET_DIR/hypr/hyprland.conf" "\$@"
-EOF
-    chmod 0755 "$LAUNCHER_BIN"
+    # Finish copying before touching a working installation. The stage is a
+    # direct, freshly-created child of the already validated config root.
+    mkdir -p "$XDG_CONFIG_HOME" "$BIN_DIR"
+    stage="$(mktemp -d "$XDG_CONFIG_HOME/.marathon-stage.XXXXXXXX")"
+    backup=''
+    cleanup() {
+        local status=$?
+        trap - EXIT
+        if [[ -n "$stage" && -d "$stage" && ! -L "$stage" ]]; then
+            rm -rf -- "${stage:?}"
+        fi
+        if [[ ! -e "$TARGET_DIR" && -n "$backup" && -d "$backup" ]]; then
+            mv -- "$backup" "$TARGET_DIR"
+        fi
+        exit "$status"
+    }
+    trap cleanup EXIT
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
+    for d in ui shell hypr design apps scripts; do
+        cp -a -- "$REPO_ROOT/$d" "$stage/$d"
+    done
+    for relative in settings.json scratchpad.txt hypr/user-settings.conf apps/generated; do
+        if [[ -e "$TARGET_DIR/$relative" ]]; then
+            [[ ! -L "$TARGET_DIR/$relative" ]] || {
+                log "ERROR: Refusing symlinked user data: $relative"; exit 1;
+            }
+            if [[ -d "$TARGET_DIR/$relative" ]]; then
+                cp -a -- "$TARGET_DIR/$relative/." "$stage/$relative/"
+            else
+                cp -a -- "$TARGET_DIR/$relative" "$stage/$relative"
+            fi
+        fi
+    done
+    chmod 0755 "$stage"/scripts/*.sh
+    write_session_helper "$stage/.session-helper"
+    if [[ -d "$TARGET_DIR" ]]; then
+        mkdir -p "$BACKUP_ROOT"
+        backup="$(mktemp -d "$BACKUP_ROOT/$(date +%Y%m%d-%H%M%S)-XXXXXXXX")"
+        rmdir -- "$backup"
+        mv -- "$TARGET_DIR" "$backup"
+        log "Previous profile backed up: $backup"
+    fi
+    mv -- "$stage" "$TARGET_DIR"
+    stage=''
+    mv -f -- "$TARGET_DIR/.session-helper" "$LAUNCHER_BIN"
 fi
 
 if [[ "$APPLY_APP_THEMES" -eq 1 ]]; then
     if [[ "$DRY_RUN" -eq 1 ]]; then
-        bash "$REPO_ROOT/scripts/apply-themes.sh" --dry-run
+        "$BASH" "$REPO_ROOT/scripts/apply-themes.sh" --dry-run
     else
-        bash "$TARGET_DIR/scripts/apply-themes.sh" --yes
+        "$BASH" "$TARGET_DIR/scripts/apply-themes.sh" --yes
     fi
 fi
 

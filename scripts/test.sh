@@ -14,10 +14,13 @@ fi
 
 "$PYTHON_BIN" scripts/check_qml.py
 "$PYTHON_BIN" tests/test_contracts_and_assets.py
+MARATHON_TEST_BASH="$BASH" "$PYTHON_BIN" tests/test_installer.py
 "$PYTHON_BIN" tests/run_tests.py
 
 if command -v bash >/dev/null 2>&1; then
     bash -n scripts/install.sh
+    bash -n setup.sh
+    bash -n scripts/profile-common.sh
     bash -n scripts/uninstall.sh
     bash -n scripts/doctor.sh
     bash -n scripts/test.sh

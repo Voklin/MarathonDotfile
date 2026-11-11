@@ -23,5 +23,12 @@
 ## Незавершённые функции / Ожидает стенда CachyOS
 - Живой аудит и интеграционная приёмка на целевой ОС CachyOS (`bash scripts/doctor.sh`, `bash scripts/install.sh --dry-run`, `bash scripts/apply-themes.sh --dry-run`, запуск `Hyprland --config ...`, `quickshell -p ...`, PipeWire streams, MPRIS, `grim`/`slurp`/`satty`/`cliphist`/`hyprpicker`/`hypridle`/`hyprsunset`, запись `~/.config/marathon-tactical/apps/generated/*`) — **`NOT RUN — requires CachyOS`**.
 
+## Консольный установщик — 2026-11-11
+
+- Добавлен `bash setup.sh`: русскоязычное меню установки/обновления, dry-run, диагностики, отката тем/профиля, удаления и команд запуска. Темы включаются отдельно, перед записью показывается план; пакеты не устанавливаются, сессия не запускается.
+- Установка использует staging и уникальные резервные копии; ошибка копирования сохраняет текущий профиль. Откат проверяет наличие backup до изменений, сохраняет текущий профиль и восстанавливает session helper. Добавлены проверки путей и LF для Bash через `.gitattributes`.
+- `tests/test_installer.py`: 14 тестов, **13 PASS / 1 SKIP** на Windows Bash (проверка симлинков пропущена: WinError 1314). В тестах `chmod` заглушён; Linux для меню моделируется. `tests/test_contracts_and_assets.py`: **7 PASS**. Bash-синтаксис проверен, включая `setup.sh` и общий модуль.
+- Инструкция: [`INSTALLER.md`](INSTALLER.md). POSIX permissions, темы с реальными симлинками и Hyprland/Quickshell runtime: **`NOT RUN — requires CachyOS`**. После локальной реализации владелец отдельно разрешил commit/push установщика в GitHub.
+
 ## Архитектурные решения
 - `ADR-001`–`ADR-008` зафиксированы в [`DECISIONS.md`](DECISIONS.md).

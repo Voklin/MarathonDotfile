@@ -32,7 +32,10 @@ fi
 printf '\n[3] Required & Optional Binaries\n'
 for cmd in Hyprland hyprctl quickshell qs hyprlock hypridle hyprpicker hyprsunset wpctl pactl brightnessctl nmcli bluetoothctl upower busctl notify-send grim slurp satty cliphist wl-copy wl-paste ghostty kitty alacritty btop yazi starship fastfetch mpv imv zathura qt6ct python3; do
     if command -v "$cmd" >/dev/null 2>&1; then
-        ver="$("$cmd" --version 2>/dev/null | head -n 1 || echo "installed")"
+        ver='installed (version probe skipped: timeout unavailable)'
+        if command -v timeout >/dev/null 2>&1; then
+            ver="$(timeout 5 "$cmd" --version 2>/dev/null | head -n 1 || echo 'installed (version unavailable)')"
+        fi
         printf '  [OK]   %-14s %s\n' "$cmd" "$ver"
     else
         printf '  [MISS] %-14s not in PATH\n' "$cmd"

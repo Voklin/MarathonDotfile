@@ -4,10 +4,8 @@
 
 set -euo pipefail
 
-XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
-TARGET_DIR="${XDG_CONFIG_HOME}/marathon-tactical"
-BACKUP_ROOT="${XDG_CONFIG_HOME}/marathon-tactical-backups"
-LAUNCHER_BIN="${HOME}/.local/bin/marathon-tactical-session"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/profile-common.sh"
 
 DRY_RUN=0
 AUTO_YES=0
@@ -38,6 +36,17 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+profile_paths
+
+# Validate recovery before removing anything, including in noninteractive mode.
+latest=''
+if [[ "$RESTORE_LATEST" -eq 1 ]]; then
+    latest="$(latest_profile_backup)" || {
+        echo "ERROR: No valid profile backup found in $BACKUP_ROOT. Nothing removed." >&2
+        exit 1
+    }
+fi
+
 run_or_dry() {
     if [[ "$DRY_RUN" -eq 1 ]]; then
         printf '[DRY-RUN] %s\n' "$*"
@@ -52,30 +61,48 @@ echo "[MARATHON] Note: ~/.config/hypr/ is never modified by MARATHON Tactical."
 
 if [[ "$DRY_RUN" -eq 0 && "$AUTO_YES" -eq 0 ]]; then
     printf 'Remove MARATHON Tactical isolated profile? [y/N] '
-    read -r reply
+    read -r reply || reply=''
     if [[ ! "$reply" =~ ^[Yy]$ ]]; then
         echo "[MARATHON] Cancelled. Nothing removed."
         exit 0
     fi
 fi
 
-if [[ -d "$TARGET_DIR" ]]; then
-    run_or_dry rm -rf "${TARGET_DIR:?}"
+if [[ "$RESTORE_LATEST" -eq 1 ]]; then
+    echo "[MARATHON] Restore $latest -> $TARGET_DIR (current profile will be backed up)"
+    if [[ "$DRY_RUN" -eq 0 ]]; then
+        stage="$(mktemp -d "$XDG_CONFIG_HOME/.marathon-stage.XXXXXXXX")"
+        saved=''
+        cleanup() {
+            local status=$?
+            trap - EXIT
+            [[ ! -d "$stage" ]] || rm -rf -- "${stage:?}"
+            if [[ ! -e "$TARGET_DIR" && -n "$saved" ]]; then
+                mv -- "$saved" "$TARGET_DIR"
+            fi
+            exit "$status"
+        }
+        trap cleanup EXIT
+        trap 'exit 130' INT
+        trap 'exit 143' TERM
+        cp -a -- "$latest/." "$stage/"
+        write_session_helper "$stage/.session-helper"
+        mkdir -p "$BIN_DIR"
+        if [[ -d "$TARGET_DIR" ]]; then
+            saved="$(mktemp -d "$BACKUP_ROOT/$(date +%Y%m%d-%H%M%S)-XXXXXXXX")"
+            rmdir -- "$saved"
+            mv -- "$TARGET_DIR" "$saved"
+            echo "[MARATHON] Current profile saved: $saved"
+        fi
+        mv -- "$stage" "$TARGET_DIR"
+        mv -f -- "$TARGET_DIR/.session-helper" "$LAUNCHER_BIN"
+    fi
 else
-    echo "[MARATHON] $TARGET_DIR already absent."
-fi
-
-if [[ -f "$LAUNCHER_BIN" ]]; then
-    run_or_dry rm -f "$LAUNCHER_BIN"
-fi
-
-if [[ "$RESTORE_LATEST" -eq 1 && -d "$BACKUP_ROOT" ]]; then
-    latest="$(ls -1dt "$BACKUP_ROOT"/* 2>/dev/null | head -n 1 || true)"
-    if [[ -n "$latest" && -d "$latest" ]]; then
-        echo "[MARATHON] Restoring backup: $latest -> $TARGET_DIR"
-        run_or_dry cp -a "$latest" "$TARGET_DIR"
-    else
-        echo "[MARATHON] No backup archive found in $BACKUP_ROOT."
+    if [[ -d "$TARGET_DIR" ]]; then
+        run_or_dry rm -rf -- "${TARGET_DIR:?}"
+    fi
+    if [[ -f "$LAUNCHER_BIN" ]]; then
+        run_or_dry rm -f -- "$LAUNCHER_BIN"
     fi
 fi
 
