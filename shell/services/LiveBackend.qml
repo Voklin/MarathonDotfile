@@ -17,5 +17,7 @@ QtObject {
     property SettingsAdapter settings: SettingsAdapter {}
     property MediaAdapter media: MediaAdapter {}
     property UtilitiesAdapter utilities: UtilitiesAdapter {}
+    property TrayAdapter tray: TrayAdapter {}
+    property KeyboardAdapter keyboard: KeyboardAdapter {}
 }
 

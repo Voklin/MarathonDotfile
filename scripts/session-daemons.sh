@@ -43,3 +43,12 @@ if ! pgrep -u "$UID" -f "polkit-.*-authentication-agent" >/dev/null 2>&1; then
         fi
     done
 fi
+
+# 4. NetworkManager secret agent (Wi-Fi password prompts) and BlueZ pairing
+#    agent (PIN / passkey / trust). Started only if installed and not running.
+if command -v nm-applet >/dev/null 2>&1 && ! pgrep -u "$UID" -x nm-applet >/dev/null 2>&1; then
+    start_detached nm-applet --indicator
+fi
+if command -v blueman-applet >/dev/null 2>&1 && ! pgrep -u "$UID" -f "blueman-applet" >/dev/null 2>&1; then
+    start_detached blueman-applet
+fi

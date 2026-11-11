@@ -209,6 +209,37 @@ class InstallerTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
         self.assertEqual((outside / "keep.txt").read_text(), "KEEP")
 
+    def test_apply_themes_unique_backups_and_restore(self):
+        with self.helper.open("a", encoding="utf-8") as stream:
+            stream.write('date() { printf "20261111-120000\\n"; }\n')
+            if os.name == "nt":
+                stream.write('ln() { cp -a -- "${@: -2:1}" "${@: -1}"; }\n')
+        self.install()
+        gtk3 = self.config / "gtk-3.0"
+        gtk3.mkdir(parents=True)
+        (gtk3 / "gtk.css").write_text("/* USER ORIGINAL GTK3 */\n")
+        self.run_script("scripts/apply-themes.sh", "--yes")
+        self.run_script("scripts/apply-themes.sh", "--yes")
+        backups = [p for p in (self.config / "marathon-tactical-app-backups").iterdir() if p.is_dir()]
+        self.assertEqual(len(backups), 2)
+        self.run_script("scripts/apply-themes.sh", "--restore", "--yes")
+        self.run_script("scripts/apply-themes.sh", "--restore", "--yes")
+        self.assertEqual((gtk3 / "gtk.css").read_text(), "/* USER ORIGINAL GTK3 */\n")
+
+    def test_shell_ctl_isolated_status(self):
+        result = self.run_script("scripts/shell-ctl.sh", "status", ok=False)
+        self.assertEqual(result.returncode, 3)
+        self.assertIn("not running", result.stdout)
+
+    def test_onboarding_check_and_opt_in_session_staging(self):
+        self.install()
+        check_res = self.run_script("scripts/onboarding.sh", "--check")
+        self.assertIn("Nothing was installed or changed.", check_res.stdout)
+        sess_res = self.run_script("scripts/onboarding.sh", "--session-file")
+        staged = self.home / ".local/share/marathon-tactical/marathon-tactical.desktop"
+        self.assertTrue(staged.is_file(), sess_res.stdout)
+        self.assertIn("Exec=", staged.read_text())
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

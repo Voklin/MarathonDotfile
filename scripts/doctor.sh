@@ -44,12 +44,14 @@ done
 
 printf '\n[4] Notification Daemon Conflict Check (org.freedesktop.Notifications)\n'
 if command -v busctl >/dev/null 2>&1; then
-    owner="$(busctl --user get-name-owner org.freedesktop.Notifications 2>/dev/null || true)"
-    if [[ -n "$owner" ]]; then
+    owner="$(busctl --user --timeout=2 call org.freedesktop.DBus /org/freedesktop/DBus org.freedesktop.DBus NameHasOwner s org.freedesktop.Notifications 2>/dev/null || echo probe-failed)"
+    if [[ "$owner" == "b true" ]]; then
         printf '  [WARN] org.freedesktop.Notifications already owned by: %s\n' "$owner"
         printf '         MARATHON NotificationsAdapter will disable NotificationServer instead of fighting.\n'
-    else
+    elif [[ "$owner" == "b false" ]]; then
         printf '  [OK]   org.freedesktop.Notifications is unowned -> ready for MARATHON NotificationServer.\n'
+    else
+        printf '  [FAIL] D-Bus ownership probe failed; do not claim the notification service.\n'
     fi
 fi
 

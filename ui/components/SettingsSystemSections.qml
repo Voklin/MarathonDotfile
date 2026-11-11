@@ -64,6 +64,18 @@ Item {
             onIconClicked: { if (root.backend && root.backend.audio) root.backend.audio.toggleMicMute() }
         }
 
+        Repeater {
+            model: root.backend && root.backend.audio ? root.backend.audio.sources : []
+            delegate: TacticalButton {
+                required property var modelData
+                Layout.fillWidth: true
+                text: "MIC // " + modelData.name
+                active: modelData.active
+                iconName: modelData.active ? "check" : "mic"
+                onClicked: root.backend.audio.selectSource(modelData.id)
+            }
+        }
+
         Rectangle {
             visible: root.backend && root.backend.audio && root.backend.audio.available
             Layout.fillWidth: true
@@ -148,6 +160,19 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         spacing: Tokens.spaceSm
+
+        TacticalButton {
+            Layout.fillWidth: true
+            text: "WI-FI SETUP / PASSWORD / HIDDEN NETWORK"
+            iconName: "wifi"
+            onClicked: root.backend.network.openManager()
+        }
+        TacticalButton {
+            Layout.fillWidth: true
+            text: "BLUETOOTH PAIR / PIN / TRUST"
+            iconName: "bluetooth"
+            onClicked: root.backend.bluetooth.openManager()
+        }
 
         TacticalToggle {
             Layout.fillWidth: true
@@ -555,7 +580,7 @@ Item {
                 spacing: Tokens.spaceXs
 
                 Text {
-                    text: "SUBSYSTEM ADAPTER HEALTH MATRIX (14 CONTRACTS)"
+                    text: "SUBSYSTEM ADAPTER HEALTH MATRIX (16 CONTRACTS)"
                     color: Tokens.signal
                     font.family: Tokens.fontMono
                     font.pixelSize: Tokens.fontMicro
@@ -577,7 +602,9 @@ Item {
                         { name: "Appearance", obj: root.backend.appearance },
                         { name: "Settings Hub", obj: root.backend.settings },
                         { name: "Media (MPRIS)", obj: root.backend.media },
-                        { name: "Utilities (Wayland)", obj: root.backend.utilities }
+                        { name: "Utilities (Wayland)", obj: root.backend.utilities },
+                        { name: "Tray (SNI)", obj: root.backend.tray },
+                        { name: "Keyboard (XKB)", obj: root.backend.keyboard }
                     ] : []
                     delegate: Rectangle {
                         id: diagRow

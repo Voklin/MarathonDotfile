@@ -12,7 +12,7 @@ XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 TARGET_DIR="${XDG_CONFIG_HOME}/marathon-tactical"
 BACKUP_ROOT="${XDG_CONFIG_HOME}/marathon-tactical-app-backups"
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
-BACKUP_DIR="${BACKUP_ROOT}/${TIMESTAMP}"
+BACKUP_DIR="${BACKUP_ROOT}/${TIMESTAMP}-<unique-id>"
 
 if [[ -d "${TARGET_DIR}/apps" ]]; then
     SOURCE_APPS="${TARGET_DIR}/apps"
@@ -63,46 +63,6 @@ if [[ ! -d "$SOURCE_APPS" ]]; then
     exit 1
 fi
 
-restore_latest() {
-    if [[ ! -d "$BACKUP_ROOT" ]]; then
-        log "No app backup directory found at $BACKUP_ROOT."
-        exit 1
-    fi
-    local latest
-    latest="$(ls -1dt "$BACKUP_ROOT"/* 2>/dev/null | head -n 1 || true)"
-    if [[ -z "$latest" || ! -f "$latest/manifest.txt" ]]; then
-        log "No valid backup manifest found in $BACKUP_ROOT."
-        exit 1
-    fi
-    log "Restoring from backup: $latest"
-    while IFS='|' read -r status rel_path; do
-        [[ -z "$status" || -z "$rel_path" ]] && continue
-        local dest="${XDG_CONFIG_HOME}/${rel_path}"
-        if [[ "$status" == "EXISTED" ]]; then
-            local src="${latest}/files/${rel_path}"
-            if [[ "$DRY_RUN" -eq 1 ]]; then
-                printf '[DRY-RUN] restore %s -> %s\n' "$src" "$dest"
-            else
-                mkdir -p "$(dirname "$dest")"
-                rm -rf "$dest"
-                cp -a "$src" "$dest"
-            fi
-        elif [[ "$status" == "CREATED" ]]; then
-            if [[ "$DRY_RUN" -eq 1 ]]; then
-                printf '[DRY-RUN] remove MARATHON-created %s\n' "$dest"
-            else
-                rm -f "$dest"
-            fi
-        fi
-    done < "$latest/manifest.txt"
-    log "App theme restore complete."
-    exit 0
-}
-
-if [[ "$RESTORE_MODE" -eq 1 ]]; then
-    restore_latest
-fi
-
 # Relative path under XDG_CONFIG_HOME | Source file inside $SOURCE_APPS
 LINKS=(
     "ghostty/config|ghostty/config"
@@ -129,13 +89,86 @@ MANAGED_WRITES=(
     "qt6ct/qt6ct.conf"
 )
 
+# Validate all targets BEFORE any mutation. Final file symlinks are supported;
+# symlinked parent directories and directory-valued files are rejected.
+validate_target() {
+    local dest="$XDG_CONFIG_HOME/$1" parent
+    parent="$(dirname "$dest")"
+    [[ "$XDG_CONFIG_HOME" == /* && "$XDG_CONFIG_HOME" != / ]] || return 1
+    [[ "$(readlink -m -- "$parent")" == "$parent" ]] || {
+        log "ERROR: symlinked/non-normalized parent: $parent"; return 1;
+    }
+    [[ ! -d "$dest" || -L "$dest" ]] || {
+        log "ERROR: refusing directory as config file: $dest"; return 1;
+    }
+}
+allowed_path() {
+    local entry
+    for entry in "${LINKS[@]}" "${MANAGED_WRITES[@]}"; do
+        [[ "${entry%%|*}" != "$1" ]] || return 0
+    done
+    return 1
+}
+for entry in "${LINKS[@]}" "${MANAGED_WRITES[@]}"; do
+    validate_target "${entry%%|*}"
+done
+[[ ! -L "$BACKUP_ROOT" && "$(readlink -m -- "$BACKUP_ROOT")" == "$BACKUP_ROOT" ]] || {
+    log 'ERROR: unsafe backup root'; exit 1;
+}
+if [[ "$DRY_RUN" -eq 0 ]]; then
+    lock="$XDG_CONFIG_HOME/.marathon-themes.lock"
+    mkdir -p "$XDG_CONFIG_HOME"
+    mkdir "$lock" 2>/dev/null || { log "ERROR: another theme operation or stale lock: $lock"; exit 1; }
+    trap 'rmdir -- "$lock"' EXIT
+fi
+if [[ "$RESTORE_MODE" -eq 1 ]]; then
+    latest=''
+    for candidate in "$BACKUP_ROOT"/*; do
+        [[ -d "$candidate" && ! -L "$candidate" && -f "$candidate/.ready" && ! -e "$candidate/.restored" ]] || continue
+        if [[ -z "$latest" || "$candidate" -nt "$latest" ]]; then latest="$candidate"; fi
+    done
+    [[ -n "$latest" && -f "$latest/manifest.txt" && ! -L "$latest/manifest.txt" ]] || {
+        log 'ERROR: no pending valid theme backup'; exit 1;
+    }
+    # Validate the entire manifest and snapshot before restoring any file.
+    while IFS='|' read -r status rel; do
+        allowed_path "$rel" && validate_target "$rel" || { log 'ERROR: invalid manifest path'; exit 1; }
+        case "$status" in
+            EXISTED) [[ -e "$latest/files/$rel" || -L "$latest/files/$rel" ]] || exit 1 ;;
+            CREATED) ;;
+            *) log 'ERROR: invalid manifest status'; exit 1 ;;
+        esac
+    done < "$latest/manifest.txt"
+    if [[ "$AUTO_YES" -eq 0 && "$DRY_RUN" -eq 0 ]]; then
+        printf 'Restore app themes from %s? [y/N] ' "$latest"
+        read -r reply || reply=''
+        [[ "$reply" =~ ^[Yy]$ ]] || exit 0
+    fi
+    while IFS='|' read -r status rel; do
+        dest="$XDG_CONFIG_HOME/$rel"
+        if [[ "$DRY_RUN" -eq 1 ]]; then log "DRY-RUN restore $status $dest"; continue; fi
+        if [[ "$status" == EXISTED ]]; then
+            mkdir -p "$(dirname "$dest")"
+            tmp="$(mktemp "$(dirname "$dest")/.marathon-restore.XXXXXXXX")"
+            rm -f -- "$tmp"
+            cp -a -- "$latest/files/$rel" "$tmp"
+            mv -Tf -- "$tmp" "$dest"
+        else
+            rm -f -- "$dest"
+        fi
+    done < "$latest/manifest.txt"
+    if [[ "$DRY_RUN" -eq 0 ]]; then : > "$latest/.restored"; fi
+    log 'App theme restore complete; snapshot retained and marked restored.'
+    exit 0
+fi
+
 log "Source app configs : $SOURCE_APPS"
 log "Target config root : $XDG_CONFIG_HOME"
 log "Backup destination : $BACKUP_DIR"
 
 if [[ "$DRY_RUN" -eq 0 && "$AUTO_YES" -eq 0 ]]; then
     printf 'Deploy MARATHON app configs into %s (backing up existing files first)? [y/N] ' "$XDG_CONFIG_HOME"
-    read -r reply
+    read -r reply || reply=''
     if [[ ! "$reply" =~ ^[Yy]$ ]]; then
         log "Cancelled by user. Zero changes written."
         exit 0
@@ -143,6 +176,8 @@ if [[ "$DRY_RUN" -eq 0 && "$AUTO_YES" -eq 0 ]]; then
 fi
 
 if [[ "$DRY_RUN" -eq 0 ]]; then
+    mkdir -p "$BACKUP_ROOT"
+    BACKUP_DIR="$(mktemp -d "$BACKUP_ROOT/${TIMESTAMP}-XXXXXXXX")"
     mkdir -p "${BACKUP_DIR}/files"
     : > "${BACKUP_DIR}/manifest.txt"
 fi
@@ -165,36 +200,44 @@ backup_target() {
     fi
 }
 
+# Complete snapshot of every target before replacing the first one.
+for entry in "${LINKS[@]}" "${MANAGED_WRITES[@]}"; do
+    backup_target "${entry%%|*}"
+done
+if [[ "$DRY_RUN" -eq 0 ]]; then : > "$BACKUP_DIR/.ready"; fi
+
 for entry in "${LINKS[@]}"; do
     rel="${entry%%|*}"
     src="${SOURCE_APPS}/${entry#*|}"
     dest="${XDG_CONFIG_HOME}/${rel}"
-    backup_target "$rel"
     if [[ "$DRY_RUN" -eq 1 ]]; then
         printf '[DRY-RUN] symlink %s -> %s\n' "$dest" "$src"
     else
         mkdir -p "$(dirname "$dest")"
-        ln -sfn "$src" "$dest"
+        tmp="$(mktemp "$(dirname "$dest")/.marathon-link.XXXXXXXX")"
+        rm -f -- "$tmp"
+        ln -s -- "$src" "$tmp"
+        mv -Tf -- "$tmp" "$dest"
     fi
 done
 
 for rel in "${MANAGED_WRITES[@]}"; do
-    backup_target "$rel"
     dest="${XDG_CONFIG_HOME}/${rel}"
     if [[ "$DRY_RUN" -eq 1 ]]; then
         printf '[DRY-RUN] write managed %s\n' "$dest"
     else
         mkdir -p "$(dirname "$dest")"
+        tmp="$(mktemp "$(dirname "$dest")/.marathon-write.XXXXXXXX")"
         case "$rel" in
             gtk-3.0/gtk.css)
-                cat > "$dest" <<EOF
+                cat > "$tmp" <<EOF
 /* MARATHON Tactical — GTK 3.0 Managed Entrypoint (Live Synced Palette) */
 @import "${SOURCE_APPS}/generated/gtk-colors.css";
 @import "${SOURCE_APPS}/gtk-3.0/widgets.css";
 EOF
                 ;;
             gtk-4.0/gtk.css)
-                cat > "$dest" <<EOF
+                cat > "$tmp" <<EOF
 /* MARATHON Tactical — GTK 4.0 Managed Entrypoint (Live Synced Palette) */
 @import "${SOURCE_APPS}/generated/gtk-colors.css";
 @import "${SOURCE_APPS}/gtk-4.0/widgets.css";
@@ -202,9 +245,10 @@ EOF
                 ;;
             qt6ct/qt6ct.conf)
                 sed "s|~/.config/marathon-tactical/apps/generated/qt6ct-colors.conf|${SOURCE_APPS}/generated/qt6ct-colors.conf|g" \
-                    "${SOURCE_APPS}/qt6ct/qt6ct.conf" > "$dest"
+                    "${SOURCE_APPS}/qt6ct/qt6ct.conf" > "$tmp"
                 ;;
         esac
+        mv -Tf -- "$tmp" "$dest"
     fi
 done
 

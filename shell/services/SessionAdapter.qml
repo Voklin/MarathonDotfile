@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
+import "../../ui/logic/DesktopParsing.js" as Parsing
 
 QtObject {
     id: root
@@ -18,6 +19,7 @@ QtObject {
     property string authError: ""
     property string hyprlockConfigPath: ""
     property bool _hyprlockConfigValid: false
+    property string _suspendReply: ""
 
     signal simulatedActionExecuted(string action)
 
@@ -60,15 +62,15 @@ QtObject {
     }
 
     property Process suspendProbe: Process {
-        command: ["systemctl", "can-suspend"]
+        command: ["busctl", "--system", "--timeout=3", "call", "org.freedesktop.login1", "/org/freedesktop/login1", "org.freedesktop.login1.Manager", "CanSuspend"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
-                root.canSuspend = ((text || "").trim().toLowerCase() === "yes")
+                root._suspendReply = text || ""
             }
         }
         onExited: function(code, _status) {
-            if (code !== 0) root.canSuspend = false
+            root.canSuspend = Parsing.canSuspend(code, root._suspendReply)
         }
     }
 

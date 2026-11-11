@@ -14,6 +14,13 @@ QtObject {
         { id: "sink-speakers", name: "Laptop Built-in Audio", description: "Internal Speaker", active: false },
         { id: "sink-hdmi", name: "HDMI / DisplayPort Out", description: "External Monitor", active: false }
     ]
+    property var sources: [
+        { id: "mic-internal", name: "Internal Microphone", active: true },
+        { id: "mic-usb", name: "USB Microphone", active: false }
+    ]
+    function selectSource(id) {
+        sources = sources.map(function(s) { return { id: s.id, name: s.name, active: s.id === id } })
+    }
     property bool micAvailable: true
     property bool micMuted: false
     property real micVolume: 0.80

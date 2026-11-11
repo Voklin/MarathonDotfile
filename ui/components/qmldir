@@ -35,3 +35,4 @@ SystemMonitorPanel 1.0 SystemMonitorPanel.qml
 CalendarNotesPanel 1.0 CalendarNotesPanel.qml
 CheatsheetPanel 1.0 CheatsheetPanel.qml
 
+TrayStrip 1.0 TrayStrip.qml

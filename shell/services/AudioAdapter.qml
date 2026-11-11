@@ -18,6 +18,27 @@ QtObject {
         return out
     }
 
+    readonly property var hardwareSources: {
+        var out = []
+        var nodes = Pipewire.nodes ? Pipewire.nodes.values : []
+        for (var i = 0; i < nodes.length; ++i) {
+            var n = nodes[i]
+            if (n && !n.isSink && !n.isStream && n.audio) out.push(n)
+        }
+        return out
+    }
+    readonly property var sources: hardwareSources.map(function(n) {
+        return { id: String(n.id), name: String(n.description || n.name), active: defaultSource !== null && n.id === defaultSource.id }
+    })
+    function selectSource(id) {
+        for (var i = 0; i < hardwareSources.length; ++i) {
+            if (String(hardwareSources[i].id) === String(id)) {
+                Pipewire.preferredDefaultAudioSource = hardwareSources[i]
+                return
+            }
+        }
+    }
+
     readonly property var trackedObjects: {
         var objs = []
         if (defaultSink) objs.push(defaultSink)
@@ -25,7 +46,7 @@ QtObject {
         for (var i = 0; i < hardwareSinks.length; ++i) {
             objs.push(hardwareSinks[i])
         }
-        return objs
+        return objs.concat(hardwareSources)
     }
 
     property PwObjectTracker tracker: PwObjectTracker {

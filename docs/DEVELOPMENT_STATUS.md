@@ -1,6 +1,15 @@
 # MARATHON Tactical — Development Status
 
-- **Текущий этап:** `System Apps, Redesign & User-Friendly UX Pack` (`DONE Offline / CachyOS Verification Pending`)
+## Аудит повседневной готовности и исправления A01–A12 — 2026-11-11
+
+Все 12 пунктов из [`DAILY_USE_AUDIT_2026-11-11.md`](DAILY_USE_AUDIT_2026-11-11.md) и [`DAILY_USE_FIX_PLAN.md`](DAILY_USE_FIX_PLAN.md) реализованы в коде (`ADR-009` в [`DECISIONS.md`](DECISIONS.md)):
+- **A01/A02:** fail-closed D-Bus вызовы `NameHasOwner` и `login1.Manager.CanSuspend` с таймаутами + парсер [`ui/logic/DesktopParsing.js`](../ui/logic/DesktopParsing.js) и негативные тесты.
+- **A03/A06/A08:** `Parsing.terseFields()` для экранированных SSID (`\:`, `\\`), IPv4-адрес интерфейса, `nm-applet --indicator` и `blueman-applet` в [`scripts/session-daemons.sh`](../scripts/session-daemons.sh), делегирование паролей/PIN в `nm-connection-editor` и `blueman-manager`.
+- **A04/A07/A09:** 16 контрактов Mock <-> Adapter (добавлены `TrayMock`/`TrayAdapter` и `KeyboardMock`/`KeyboardAdapter`), [`ui/components/TrayStrip.qml`](../ui/components/TrayStrip.qml) с индикатором раскладки `EN/RU` в `TopHudBar`, раскладка `us,ru` (`Alt+Shift`) в `hypr/modules/input.conf`, выбор входного микрофона (`sources` / `selectSource`) в `AudioMock`/`AudioAdapter` и `SettingsSystemSections.qml`.
+- **A05/A10/A11/A12:** уникальные бэкапы `mktemp -d` и запись без следования симлинкам (`mv -Tf`) в [`scripts/apply-themes.sh`](../scripts/apply-themes.sh); изолированный lifecycle [`scripts/shell-ctl.sh`](../scripts/shell-ctl.sh) вместо глобального `pkill -x quickshell`; bounded-хранилище [`shell/services/StateStore.qml`](../shell/services/StateStore.qml) (`<=64 KiB`, только ID без секретов и содержимого буфера); проверяемый [`scripts/onboarding.sh`](../scripts/onboarding.sh) (`--check` / opt-in `--session-file`).
+- **Свежие проверки на Windows 11:** `96` QML-файлов (`check_qml.py` PASS), `63/63` QtQuickTest PASS (`tests/run_tests.py`), `7/7` contract/asset PASS (`tests/test_contracts_and_assets.py`), просмотрены PNG-рендеры HUD и Settings Hub. Живой Linux runtime — **`NOT RUN — requires CachyOS`**.
+
+- **Текущий этап:** `Daily-Use Audit Remediation (A01–A12)` (`DONE Offline / CachyOS Verification Pending`)
 - **Предыдущий этап:** `Post-MVP Extension: GUI Settings Hub` (`DONE Offline / CachyOS Pending`)
 
 ## Таблица этапов (1–12)
@@ -31,4 +40,4 @@
 - Инструкция: [`INSTALLER.md`](INSTALLER.md). POSIX permissions, темы с реальными симлинками и Hyprland/Quickshell runtime: **`NOT RUN — requires CachyOS`**. После локальной реализации владелец отдельно разрешил commit/push установщика в GitHub.
 
 ## Архитектурные решения
-- `ADR-001`–`ADR-008` зафиксированы в [`DECISIONS.md`](DECISIONS.md).
+- `ADR-001`–`ADR-009` зафиксированы в [`DECISIONS.md`](DECISIONS.md).

@@ -68,6 +68,9 @@ Variants {
             onSessionMenuRequested: root.sessionMenuRequested()
             onSettingsRequested: root.settingsRequested()
             onCalendarRequested: root.calendarRequested()
+            onTrayMenuRequested: function(itemId, x, y) {
+                if (root.backend && root.backend.tray) root.backend.tray.openMenu(itemId, hudWin, x, y)
+            }
         }
     }
 }

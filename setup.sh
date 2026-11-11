@@ -96,6 +96,7 @@ show_next_steps() {
     printf 'Удаление: bash %q --yes\n' "$ROOT/scripts/uninstall.sh"
     printf 'Откат профиля: bash %q --restore-backup\n' "$ROOT/scripts/uninstall.sh"
     printf 'Откат тем: bash %q --restore\n' "$ROOT/scripts/apply-themes.sh"
+    printf 'Onboarding: bash %q --check  |  opt-in login entry: --session-file\n' "$ROOT/scripts/onboarding.sh"
 }
 
 show_environment

@@ -14,6 +14,8 @@ QtObject {
         { address: "AA:11:22:33:44:03", name: "KEYCHRON-K3-PRO", connected: false, battery: 55 }
     ]
 
+    function openManager() { errorMessage = "PREVIEW: EXTERNAL SETTINGS MANAGER" }
+
     function togglePower() {
         if (!available) return
         powered = !powered

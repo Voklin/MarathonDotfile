@@ -36,6 +36,8 @@ QtObject {
         property real volume: 0.0
         property bool muted: true
         property string sinkName: ""
+        property var sources: []
+        function selectSource(id) {}
         property var sinks: []
         property bool micAvailable: false
         property bool micMuted: true
@@ -60,6 +62,7 @@ QtObject {
         property bool wifiEnabled: false
         property string ipAddress: ""
         property var networks: []
+        function openManager() {}
         function toggleWifi() {}
         function connectNetwork(ssid) {}
         function disconnect() {}
@@ -72,6 +75,7 @@ QtObject {
         property bool powered: false
         property string connectedDevice: ""
         property var devices: []
+        function openManager() {}
         function togglePower() {}
         function toggleDevice(address) {}
     }
@@ -319,6 +323,26 @@ QtObject {
         function next() {}
         function previous() {}
         function seekBy(seconds) {}
+    }
+
+    property var tray: QtObject {
+        property bool available: false
+        property bool loading: false
+        property string errorMessage: ""
+        property var items: []
+        function activate(id) {}
+        function secondaryActivate(id) {}
+        function scroll(id, delta) {}
+        function openMenu(id, window, x, y) {}
+    }
+
+    property var keyboard: QtObject {
+        property bool available: false
+        property bool loading: false
+        property string errorMessage: ""
+        property string layoutName: ""
+        property string shortCode: "--"
+        function nextLayout() {}
     }
 
     property var utilities: QtObject {

@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell.Io
+import "../../ui/logic/DesktopParsing.js" as Parsing
 
 QtObject {
     id: root
@@ -61,7 +62,7 @@ QtObject {
                 var foundWifi = false
                 var foundEth = false
                 for (var i = 0; i < lines.length; ++i) {
-                    var parts = lines[i].split(":")
+                    var parts = Parsing.terseFields(lines[i])
                     if (parts.length < 4) continue
                     var dev = parts[0]
                     var dtype = parts[1]
@@ -117,7 +118,7 @@ QtObject {
                 var seen = {}
                 for (var i = 0; i < lines.length; ++i) {
                     if (!lines[i]) continue
-                    var parts = lines[i].split(":")
+                    var parts = Parsing.terseFields(lines[i])
                     if (parts.length < 4) continue
                     var inUse = (parts[0] === "*")
                     var sname = parts[1]
@@ -146,7 +147,12 @@ QtObject {
         running: false
         onExited: function(code, _status) {
             actionTimeout.stop()
-            if (code !== 0) {
+            var fallback = root._pendingManagerFallback
+            root._pendingManagerFallback = false
+            if (code !== 0 && fallback) {
+                root.errorMessage = "NO SAVED PROFILE — OPENING NETWORK MANAGER"
+                root.openManager()
+            } else if (code !== 0) {
                 root.errorMessage = "NETWORK CMD FAILED (EXIT " + code + ")"
             }
             root.refreshState()
@@ -184,7 +190,50 @@ QtObject {
 
     function connectNetwork(targetSsid) {
         if (!available || !wifiEnabled || !targetSsid) return
-        runAction(["nmcli", "device", "wifi", "connect", String(targetSsid)])
+        // Secrets are never passed in argv or stored in shell settings.
+        // Open networks connect directly; secured ones try a saved profile first
+        // (nm-applet secret agent may prompt), otherwise nm-connection-editor
+        // owns password / enterprise / hidden-network dialogs.
+        var net = null
+        for (var i = 0; i < networks.length; ++i) if (networks[i].ssid === targetSsid) net = networks[i]
+        if (net && !net.secured) {
+            runAction(["nmcli", "device", "wifi", "connect", String(targetSsid)])
+            return
+        }
+        if (actionProc.running) return
+        root.errorMessage = ""
+        root._pendingManagerFallback = true
+        actionProc.command = ["nmcli", "connection", "up", "id", String(targetSsid)]
+        actionProc.running = true
+        actionTimeout.restart()
+    }
+    property bool _pendingManagerFallback: false
+
+    property Process ipProc: Process {
+        running: false
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var first = (text || "").trim().split("\n")[0] || ""
+                root.ipAddress = first.split("/")[0]
+            }
+        }
+        onExited: function(code, _status) { if (code !== 0) root.ipAddress = "" }
+    }
+    onInterfaceNameChanged: {
+        if (!interfaceName) { ipAddress = ""; return }
+        ipProc.command = ["nmcli", "-g", "IP4.ADDRESS", "device", "show", String(interfaceName)]
+        if (!ipProc.running) ipProc.running = true
+    }
+
+    property Process managerProc: Process {
+        command: ["nm-connection-editor"]
+        onExited: function(code, _status) {
+            if (code !== 0) root.errorMessage = "INSTALL network-manager-applet FOR NETWORK SETTINGS"
+            root.refreshState()
+        }
+    }
+    function openManager() {
+        if (!managerProc.running) managerProc.running = true
     }
 
     function disconnect() {

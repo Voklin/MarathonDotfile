@@ -13,5 +13,7 @@ AppearanceMock 1.0 AppearanceMock.qml
 SettingsMock 1.0 SettingsMock.qml
 MediaMock 1.0 MediaMock.qml
 UtilitiesMock 1.0 UtilitiesMock.qml
+TrayMock 1.0 TrayMock.qml
+KeyboardMock 1.0 KeyboardMock.qml
 MockBackend 1.0 MockBackend.qml
 

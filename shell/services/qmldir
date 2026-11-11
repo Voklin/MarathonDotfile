@@ -15,3 +15,6 @@ SettingsAdapter 1.0 SettingsAdapter.qml
 MediaAdapter 1.0 MediaAdapter.qml
 UtilitiesAdapter 1.0 UtilitiesAdapter.qml
 
+TrayAdapter 1.0 TrayAdapter.qml
+KeyboardAdapter 1.0 KeyboardAdapter.qml
+StateStore 1.0 StateStore.qml

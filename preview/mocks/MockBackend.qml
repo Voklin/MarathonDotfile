@@ -19,6 +19,8 @@ QtObject {
     property SettingsMock settings: SettingsMock {}
     property MediaMock media: MediaMock {}
     property UtilitiesMock utilities: UtilitiesMock {}
+    property TrayMock tray: TrayMock {}
+    property KeyboardMock keyboard: KeyboardMock {}
 
     function resetDefaults() {
         workspaces.available = true

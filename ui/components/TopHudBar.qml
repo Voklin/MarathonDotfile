@@ -25,6 +25,7 @@ PanelReveal {
     signal sessionMenuRequested()
     signal settingsRequested()
     signal calendarRequested()
+    signal trayMenuRequested(string itemId, real x, real y)
 
     readonly property bool isCompact: width < Tokens.hudCompactBreakpoint
     readonly property bool fullscreenHidden: !forceVisible && backend && backend.activeWindow && backend.activeWindow.fullscreen && backend.appearance && backend.appearance.hudAutoHideOnFullscreen
@@ -152,6 +153,14 @@ PanelReveal {
                 orientation: Qt.Vertical
                 Layout.preferredWidth: Tokens.borderWidth
                 Layout.preferredHeight: 20
+            }
+
+            TrayStrip {
+                Layout.preferredWidth: implicitWidth
+                tray: root.backend ? root.backend.tray : null
+                keyboard: root.backend ? root.backend.keyboard : null
+                compact: root.isCompact
+                onMenuRequested: function(itemId, x, y) { root.trayMenuRequested(itemId, x, y) }
             }
 
             TelemetryCluster {

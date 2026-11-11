@@ -27,6 +27,8 @@ if command -v bash >/dev/null 2>&1; then
     bash -n scripts/copy-image.sh
     bash -n scripts/session-daemons.sh
     bash -n scripts/apply-themes.sh
+    bash -n scripts/shell-ctl.sh
+    bash -n scripts/onboarding.sh
     bash scripts/install.sh --dry-run >/dev/null
     bash scripts/uninstall.sh --dry-run >/dev/null
     bash scripts/apply-themes.sh --dry-run >/dev/null

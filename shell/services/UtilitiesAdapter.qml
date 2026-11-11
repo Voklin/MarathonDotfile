@@ -613,8 +613,18 @@ QtObject {
         var idx = nextPins.indexOf(sid)
         if (idx === -1) nextPins.push(sid)
         else nextPins.splice(idx, 1)
-        _pinnedIds = nextPins
+        _pinnedIds = nextPins.slice(-50)
+        _pinStore.set("pinnedIds", _pinnedIds)
         refreshClipboard()
+    }
+
+    // A11: clipboard pin ids (cliphist row ids only, max 50) persist; content never does.
+    property StateStore _pinStore: StateStore {
+        fileName: "clipboard-pins.json"
+        onLoaded: {
+            var saved = get("pinnedIds", [])
+            if (Array.isArray(saved)) root._pinnedIds = saved.map(String).filter(function(s) { return /^[0-9]{1,12}$/.test(s) }).slice(-50)
+        }
     }
 
     function deleteClipboardItem(id) {

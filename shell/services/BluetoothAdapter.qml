@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell.Bluetooth
+import Quickshell.Io
 
 QtObject {
     id: root
@@ -38,6 +39,16 @@ QtObject {
     function togglePower() {
         if (!available) return
         adapter.powered = !adapter.powered
+    }
+
+    property Process managerProc: Process {
+        command: ["blueman-manager"]
+        onExited: function(code, _status) {
+            if (code !== 0) root.errorMessage = "INSTALL blueman FOR PAIRING / PIN / TRUST"
+        }
+    }
+    function openManager() {
+        if (!managerProc.running) managerProc.running = true
     }
 
     function toggleDevice(address) {

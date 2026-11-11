@@ -25,6 +25,8 @@ CONTRACT_PAIRS = [
     ("SettingsMock.qml", "SettingsAdapter.qml"),
     ("MediaMock.qml", "MediaAdapter.qml"),
     ("UtilitiesMock.qml", "UtilitiesAdapter.qml"),
+    ("TrayMock.qml", "TrayAdapter.qml"),
+    ("KeyboardMock.qml", "KeyboardAdapter.qml"),
 ]
 
 PROP_RE = re.compile(r"^\s*(?:readonly\s+)?property\s+\S+\s+(\w+)\s*:", re.MULTILINE)
@@ -99,14 +101,26 @@ class MarathonContractAndAssetTests(unittest.TestCase):
 
     def test_notifications_single_daemon_check_present(self) -> None:
         notif_adapter = (REPO_ROOT / "shell" / "services" / "NotificationsAdapter.qml").read_text(encoding="utf-8")
+        session_adapter = (REPO_ROOT / "shell" / "services" / "SessionAdapter.qml").read_text(encoding="utf-8")
+        doctor_sh = (REPO_ROOT / "scripts" / "doctor.sh").read_text(encoding="utf-8")
         self.assertIn("org.freedesktop.Notifications", notif_adapter)
-        self.assertIn("busctl", notif_adapter)
+        self.assertIn("NameHasOwner", notif_adapter)
+        self.assertIn("Parsing.nameAvailable", notif_adapter)
+        self.assertNotIn("get-name-owner", notif_adapter)
+        self.assertNotIn("get-name-owner", doctor_sh)
+        self.assertIn("CanSuspend", session_adapter)
+        self.assertIn("Parsing.canSuspend", session_adapter)
+        self.assertNotIn("can-suspend", session_adapter)
+        for adapter_file in ("LauncherAdapter.qml", "NotificationsAdapter.qml", "UtilitiesAdapter.qml"):
+            txt = (REPO_ROOT / "shell" / "services" / adapter_file).read_text(encoding="utf-8")
+            self.assertIn("StateStore", txt, f"A11: StateStore missing in {adapter_file}")
 
     def test_shell_scripts_lf_and_isolation_safety(self) -> None:
         scripts_dir = REPO_ROOT / "scripts"
         for name in (
             "install.sh", "uninstall.sh", "doctor.sh", "test.sh",
             "copy-image.sh", "session-daemons.sh", "apply-themes.sh",
+            "shell-ctl.sh", "onboarding.sh",
         ):
             path = scripts_dir / name
             self.assertTrue(path.is_file(), f"Missing script: {name}")
@@ -124,6 +138,12 @@ class MarathonContractAndAssetTests(unittest.TestCase):
         self.assertIn("--dry-run", apply_txt)
         self.assertIn("--restore", apply_txt)
         self.assertIn("marathon-tactical-app-backups", apply_txt)
+        binds_txt = (REPO_ROOT / "hypr" / "modules" / "binds.conf").read_text(encoding="utf-8")
+        self.assertNotIn("pkill -x quickshell", binds_txt, "A10: restart must target only MARATHON instance")
+        ctl_txt = (scripts_dir / "shell-ctl.sh").read_text(encoding="utf-8")
+        self.assertNotIn("pkill", ctl_txt.split("\n", 6)[-1])
+        onboard_txt = (scripts_dir / "onboarding.sh").read_text(encoding="utf-8")
+        self.assertFalse(any(l.lstrip().startswith(("sudo ", "install ")) and not l.startswith("  sudo") for l in onboard_txt.splitlines()), "onboarding must only print sudo commands")
         self.assertIn("marathon-tactical", install_txt)
 
     def test_external_app_configs_and_generated_palettes_present(self) -> None:

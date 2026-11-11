@@ -22,6 +22,8 @@ pipewire
 pipewire-pulse
 pavucontrol
 networkmanager
+network-manager-applet
+blueman
 bluez
 bluez-utils
 brightnessctl
@@ -45,6 +47,8 @@ zathura
 zathura-pdf-mupdf
 qt6ct
 dolphin
+firefox
+neovim
 
 # --- Wayland Screenshots, Annotation & Clipboard ---
 grim

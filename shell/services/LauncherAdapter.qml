@@ -9,6 +9,14 @@ QtObject {
     property string errorMessage: available ? "" : "DESKTOP ENTRIES UNAVAILABLE"
     property string query: ""
     property var recentIds: []
+    // A11: MRU ids persist across restarts (bounded to 6, ids only).
+    property StateStore _store: StateStore {
+        fileName: "launcher.json"
+        onLoaded: {
+            var saved = get("recentIds", [])
+            if (Array.isArray(saved)) root.recentIds = saved.filter(function(s) { return typeof s === "string" && s.length < 256 }).slice(0, 6)
+        }
+    }
     property string lastActionNote: ""
 
     readonly property var safeCommands: [
@@ -104,6 +112,7 @@ QtObject {
             if (recentIds[j] !== id) rec.push(recentIds[j])
         }
         recentIds = rec
+        _store.set("recentIds", rec)
         lastActionNote = "LAUNCHED: " + found.name
         entryLaunched(found.id, found.name)
     }

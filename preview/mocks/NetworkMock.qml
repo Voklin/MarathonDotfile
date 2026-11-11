@@ -19,6 +19,8 @@ QtObject {
         { ssid: "LAB-OPEN-NET", signalStrength: 41, secured: false, connected: false }
     ]
 
+    function openManager() { errorMessage = "PREVIEW: EXTERNAL SETTINGS MANAGER" }
+
     function toggleWifi() {
         if (!available) return
         wifiEnabled = !wifiEnabled

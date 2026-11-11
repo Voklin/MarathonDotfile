@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Notifications
+import "../../ui/logic/DesktopParsing.js" as Parsing
 
 QtObject {
     id: root
@@ -13,37 +14,34 @@ QtObject {
     property var popupMap: ({})
     property var readMap: ({})
     property var timestampMap: ({})
+    property string _ownerReply: ""
+    property bool _ownerTimedOut: false
 
     // Single notification daemon safety check: verify no competing daemon owns org.freedesktop.Notifications
     property Process ownerCheckProc: Process {
-        command: ["busctl", "--user", "get-name-owner", "org.freedesktop.Notifications"]
+        command: ["busctl", "--user", "--timeout=2", "call", "org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus", "NameHasOwner", "s", "org.freedesktop.Notifications"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
-                var owner = (text || "").trim()
-                if (owner !== "") {
-                    root.available = false
-                    root.errorMessage = "CONFLICTING DAEMON OWNS org.freedesktop.Notifications (" + owner + ")"
-                }
+                root._ownerReply = text || ""
             }
         }
         onExited: function(code, _status) {
             ownerTimeout.stop()
             root.loading = false
-            // busctl returns non-zero when NameHasNoOwner -> safe to claim NotificationServer
-            if (code !== 0) {
-                root.available = true
-                root.errorMessage = ""
-                serverLoader.active = true
-            }
+            root.available = !root._ownerTimedOut && Parsing.nameAvailable(code, root._ownerReply)
+            serverLoader.active = root.available
+            root.errorMessage = root.available ? "" : (root._ownerTimedOut ? "D-BUS OWNERSHIP CHECK TIMEOUT" : (code === 0 && root._ownerReply.trim() === "b true" ? "ANOTHER NOTIFICATION SERVER IS ACTIVE" : "D-BUS OWNERSHIP CHECK FAILED"))
         }
     }
 
     property Timer ownerTimeout: Timer {
         interval: 2000
+        running: ownerCheckProc.running
         repeat: false
         onTriggered: {
             if (ownerCheckProc.running) {
+                root._ownerTimedOut = true
                 ownerCheckProc.running = false
                 root.loading = false
                 root.available = false
@@ -157,6 +155,14 @@ QtObject {
     function toggleDnd() {
         if (!available) return
         dnd = !dnd
+        _store.set("dnd", dnd)
+    }
+
+    // A11: only the DND flag persists. Notification history is intentionally
+    // kept in memory (keepOnReload) to avoid writing message bodies to disk.
+    property StateStore _store: StateStore {
+        fileName: "notifications.json"
+        onLoaded: root.dnd = get("dnd", false) === true
     }
 
     function findRawNotification(id) {

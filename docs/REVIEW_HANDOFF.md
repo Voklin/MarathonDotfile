@@ -1,5 +1,19 @@
 # MARATHON Tactical — Review Handoff
 
+## Publication verification — 2026-11-11
+
+Owner explicitly requested publishing the current audit-remediation snapshot to GitHub. Fresh verification before push: 63 QtQuick tests PASS, 7 contract/asset tests PASS, 16 installer/script tests PASS and 1 symlink test SKIP (Windows WinError 1314); QML lint and syntax PASS (96 files). `git diff --check` passed. Windows script tests use test doubles for unsupported POSIX operations; these results do not establish live CachyOS readiness. No release is created.
+
+## Daily-use audit & remediation (A01–A12) — 2026-11-11
+
+All 12 findings (`A01`–`A12`) from [`DAILY_USE_AUDIT_2026-11-11.md`](DAILY_USE_AUDIT_2026-11-11.md) and [`DAILY_USE_FIX_PLAN.md`](DAILY_USE_FIX_PLAN.md) have been remediated locally (`ADR-009` in [`DECISIONS.md`](DECISIONS.md)):
+- **A01 / A02 (D-Bus probes):** `NotificationsAdapter.qml` and `scripts/doctor.sh` now call `org.freedesktop.DBus.NameHasOwner` with an active `ownerTimeout` and fail-closed parser (`Parsing.nameAvailable`); `SessionAdapter.qml` calls `org.freedesktop.login1.Manager.CanSuspend` (`Parsing.canSuspend` accepts `"yes"` / `"challenge"`).
+- **A03 / A06 / A08 (Wi-Fi, Bluetooth & `nmcli` escape parser):** `Parsing.terseFields()` handles escaped `:` and `\\` in SSIDs; `NetworkAdapter.qml` queries `IP4.ADDRESS`, connects open/saved networks directly, and falls back to `nm-connection-editor` for new secured/hidden networks; `BluetoothAdapter.qml` launches `blueman-manager`; `scripts/session-daemons.sh` starts `nm-applet --indicator` and `blueman-applet` when present; `SettingsSystemSections.qml` exposes explicit manager buttons and IPv4 sublabel.
+- **A04 / A07 / A09 (SystemTray, Audio input source, XKB layout indicator):** Contract matrix expanded to **16 1:1 Mock <-> Adapter pairs** (`TrayMock`/`TrayAdapter` over `Quickshell.Services.SystemTray` and `KeyboardMock`/`KeyboardAdapter` over `hyprctl devices -j` + `activelayout` events). Added `ui/components/TrayStrip.qml` in `TopHudBar.qml` (with overflow toggle and `EN`/`RU` layout badge), `us,ru` + `grp:alt_shift_toggle` in `hypr/modules/input.conf`, and `sources` / `selectSource(id)` in `AudioMock`/`AudioAdapter` + `SettingsSystemSections.qml`.
+- **A05 (Theme backup & symlink safety):** `scripts/apply-themes.sh` pre-validates all paths and manifests, uses `mktemp -d` for collision-free backups, replaces symlinks and managed CSS/conf atomically via temporary files + `mv -Tf` (never following existing symlinks on write), and marks restored snapshots `.restored` without deleting them.
+- **A10 / A11 / A12 (Isolated lifecycle, bounded state, onboarding):** Added `scripts/shell-ctl.sh` (`start|restart|stop|status|log` verifying PID + `/proc/<pid>/cmdline` and rotating `~/.local/state/marathon-tactical/quickshell.log` at 1 MiB) and replaced `pkill -x quickshell` in `hypr/modules/binds.conf`; added `shell/services/StateStore.qml` (`atomicWrites: true`, `<=64 KiB`, storing only MRU IDs, `dnd` flag, and clipboard pin IDs); added `scripts/onboarding.sh` (`--check` and opt-in `--session-file` staging) and `firefox`/`neovim`/`network-manager-applet`/`blueman` in `scripts/packages-cachyos.txt`.
+- **Fresh checks on Windows 11:** `python scripts/check_qml.py` (**96 QML files PASS**: 63 `ui/preview` + 33 `shell`, 0 violations), `python tests/run_tests.py` (**63/63 PASS**, including `DailyUseRegression` in `tests/tst_daily_use.qml`), `python tests/test_contracts_and_assets.py` (**7/7 PASS** across 16 contracts), and Windows QtQuick Preview PNG renders visually inspected (`TopHudBar` with `TrayStrip` + `EN` badge, `SettingsHub` Audio & Connections). Live CachyOS runtime checks remain **`NOT RUN — requires CachyOS`**.
+
 ## Current Stage
 Stages 1–10 + Post-MVP GUI Settings Hub implemented on Windows 11 (`DONE Offline / CachyOS Verification Pending` — ready for live on-device verification on CachyOS Linux).
 
